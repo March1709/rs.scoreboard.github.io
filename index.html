@@ -5,6 +5,213 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>対戦競技タイマー (3マッチ制)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- 全体スタイル --- */
+        body {
+            font-family: 'Inter', sans-serif; /* フォント指定 */
+            display: flex; /* Flexboxレイアウト */
+            flex-direction: column; /* 縦方向の配置 */
+            align-items: center; /* 中央揃え（左右） */
+            justify-content: flex-start; /* 上寄せ */
+            min-height: 100vh; /* 画面全体の高さ */
+            background-color: #f0f4f8; /* 背景色 */
+            color: #333; /* 基本文字色 */
+            margin: 0; /* 外側余白なし */
+            padding: 20px; /* 内側余白 */
+            box-sizing: border-box; /* paddingとborderをwidth/heightに含める */
+        }
+        .container {
+            background-color: #ffffff; /* コンテナ背景色 */
+            padding: 20px; /* コンテナ内側余白 */
+            border-radius: 12px; /* 角丸 */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 影 */
+            width: 100%; /* 幅を親要素に合わせる */
+            max-width: 700px; /* 最大幅 */
+            text-align: center; /* テキスト中央揃え */
+        }
+        .page { width: 100%; } /* 各ページ共通の幅 */
+
+        /* --- マッチタイトル表示 --- */
+        .match-title-display {
+            font-size: 2.25rem; /* 文字サイズ (36px) */
+            font-weight: bold; /* 太字 */
+            color: #111827; /* 文字色 (濃いグレー) */
+            margin-bottom: 15px; /* 下余白 */
+        }
+
+        /* --- チーム選択エリア --- */
+        .team-selection-container {
+            margin-bottom: 20px; /* 下余白 */
+            padding-bottom: 20px; /* 下パディング */
+            border-bottom: 1px solid #e5e7eb; /* 下境界線 */
+        }
+        .team-selection-container h2, .section-title { /* セクションタイトル共通 */
+            font-size: 1.25rem; /* 文字サイズ (20px) */
+            font-weight: 600; /* 文字の太さ */
+            margin-bottom: 10px; /* 下余白 */
+            color: #374151; /* 文字色 (グレー) */
+        }
+        .team-select-group {
+            display: flex; /* Flexboxレイアウト */
+            justify-content: space-around; /* 要素間のスペースを均等に配置 */
+            align-items: center; /* 中央揃え（上下） */
+            gap: 10px; /* 要素間の隙間 */
+            margin-bottom: 10px; /* 下余白 */
+        }
+        .team-select-group label { font-size: 0.9rem; color: #4b5563; } /* ラベルスタイル */
+        .team-select-group select { /* プルダウンメニューのスタイル */
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            flex-grow: 1; /* 要素の伸び率 */
+        }
+        #selectedTeamsDisplay { /* 選択されたチーム表示エリア */
+            font-size: 1.1rem; font-weight: bold; color: #1e40af;
+            margin-top: 10px; min-height: 25px;
+        }
+
+        /* --- タイマー表示 --- */
+        .timer-display {
+            font-size: 7rem; /* 文字サイズ */
+            font-weight: bold; /* 太字 */
+            color: #1d4ed8; /* 文字色 (青) */
+            margin-bottom: 20px; /* 下余白 */
+            padding: 10px; /* 内側余白 */
+            background-color: #eff6ff; /* 背景色 (薄い青) */
+            border-radius: 8px; /* 角丸 */
+        }
+
+        /* --- ボタン共通スタイル --- */
+        .button-group {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 15px; font-size: 1rem; border-radius: 8px;
+            border: none; cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease; /* アニメーション効果 */
+            min-width: 100px; /* 最小幅 */
+        }
+        .btn:active { transform: scale(0.98); } /* クリック時の縮小効果 */
+        .btn-primary { background-color: #2563eb; color: white; } /* プライマリボタン */
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-secondary { background-color: #64748b; color: white; } /* セカンダリボタン */
+        .btn-secondary:hover { background-color: #475569; }
+        .btn-warning { background-color: #f59e0b; color: white; } /* 警告ボタン */
+        .btn-warning:hover { background-color: #d97706; }
+        .btn-danger { background-color: #dc2626; color: white; } /* 危険ボタン */
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-success { background-color: #16a34a; color: white; } /* 成功ボタン */
+        .btn-success:hover { background-color: #15803d; }
+        .btn:disabled { /* 無効状態のボタンスタイル */
+            background-color: #9ca3af; color: #e5e7eb; cursor: not-allowed;
+        }
+
+        /* --- 各セクションコンテナ --- */
+        .status-handling-container, 
+        .score-input-page-container, 
+        .results-page-container {
+            border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
+        }
+        .record-display { /* 記録表示エリア（タイマーページ） */
+            margin-top: 10px; padding: 10px 15px; background-color: #f3f4f6;
+            border-radius: 8px; font-size: 1rem; color: #1f2937;
+            min-height: 40px; display: flex; align-items: center; justify-content: center;
+        }
+        .record-display.recorded { /* 記録が選択された時のスタイル */
+            background-color: #d1fae5; color: #065f46; font-weight: bold;
+        }
+        
+        /* --- タイムアウト時情報エリア --- */
+        #timeoutInfoContainer { margin-top: 15px; }
+        #timeoutMessageDisplay { /* 「試合終了」メッセージ */
+            font-size: 1.75rem; 
+            font-weight: bold;
+            color: #b91c1c; 
+            margin-bottom: 15px;
+        }
+        /* --- 手動終了理由記録エリア --- */
+        #manualEndReasonContainer .team-select-group { 
+            margin-bottom: 15px; 
+        }
+
+        /* --- ボール数入力ページ --- */
+        #selectedStatusOnScorePage { /* 選択された状態表示（ボール数入力ページ） */
+            font-size: 1.1rem; font-weight: bold; color: #065f46;
+            background-color: #d1fae5; padding: 10px 15px;
+            border-radius: 8px; margin-bottom: 20px;
+        }
+        .score-input-area { /* ボール数入力フォームエリア */
+            display: flex; justify-content: space-around; gap: 20px; margin-top: 10px;
+        }
+        .score-team-section { /* 各チームの入力セクション */
+            flex: 1; padding: 15px; border: 1px solid #d1d5db;
+            border-radius: 8px; background-color: #f9fafb;
+        }
+        .score-team-section h3 { /* チーム名表示 */
+            font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 10px;
+        }
+        .score-input-group { margin-bottom: 10px; } /* 各入力グループ */
+        .score-input-group label { /* ラベルスタイル */
+            display: block; font-size: 0.9rem; color: #4b5563; margin-bottom: 5px;
+        }
+        .score-input-group select { /* プルダウンメニュー */
+            width: 100%; padding: 8px; border-radius: 6px;
+            border: 1px solid #d1d5db; box-sizing: border-box;
+        }
+        .score-input-group select:disabled { /* 無効状態のプルダウン */
+            background-color: #e5e7eb; 
+        }
+        .next-match-btn-container button { margin-top: 20px; } /* 「次へ」ボタンのコンテナ */
+
+        /* --- 結果表示ページ --- */
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; } /* 結果表 */
+        .results-table th, .results-table td { /* 表のセル共通スタイル */
+            border: 2px solid #000000; /* 枠線 */
+            padding: 8px 12px; text-align: left;
+            font-size: 1.25rem; /* 文字サイズ */
+        }
+        .results-table th { background-color: #f3f4f6; font-weight: 600; } /* ヘッダーセル */
+        .results-teams-display { font-size: 1.2rem; font-weight: bold; margin-bottom:15px; } /* 対戦チーム表示 */
+        
+        .highlight-winner-cell { /* マッチ勝利チームのセル強調 */
+            background-color: #dcfce7; /* 緑系 */
+        }
+        .highlight-draw-cell { /* マッチ引き分け時のセル強調 */
+            background-color: #fee2e2; /* 赤系 */
+        }
+
+        #summaryStatsContainer { /* 総計表コンテナ */
+            margin-top: 30px;
+            text-align: left;
+        }
+        .summary-table { /* 総計表 */
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .summary-table th, .summary-table td { /* 総計表セル共通 */
+            border: 2px solid #000000; /* 枠線 */
+            padding: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .summary-table th { /* 総計表ヘッダー */
+            background-color: #e9ecef;
+        }
+        .overall-winner-row td { /* 総合勝利チームの行強調 */
+            background-color: #a7f3d0; /* 緑系 */
+            font-weight: bold;
+        }
+        .overall-draw-team-name { /* 総合引き分け時のチーム名セル強調 */
+             background-color: #fecaca; /* 赤系 */
+             font-weight: bold;
+        }
+
+        /* --- 非表示用ユーティリティクラス --- */
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
     <div class="container">

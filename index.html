@@ -1,41 +1,1003 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<title>あなたのＨＰタイトル</title>
-<meta name="keywords" content="ページのキーワードA,B,C">
-<meta name="description" content="ページの説明">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>対戦競技タイマー (3マッチ制)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-<div id="outer">
-<header>
-<div class="header-inner">
-<h1>あなたのＨＰタイトル</h1>
-<p>あなたのＨＰの説明文</p>
-</div>
-</header>
-<div id="content">
-<div class="inner">
-<h2>記事ページ見出し・大</h2>
-<p>文章あれこれ</p>
-<h3>記事ページ見出し・中</h3>
-<p>文章あれこれ</p>
-<h4>記事ページ見出し・小</h4>
-<p>文章あれこれ</p>
-</div>
-<aside>
-<div class="left-title">サイドバータイトル</div>
-<div class="link">
-<ul>
-<li>記事ページへのリンク</li>
-<li>記事ページへのリンク</li>
-</ul>
-</div>
-</aside>
-</div>
-<footer>© 2010 あなたのホームページ</footer>
-</div>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-2 text-gray-800">試合タイマー＆スコアボード (3マッチ制)</h1>
+        <button id="fullResetButton" class="btn btn-danger mb-4">全体リセット</button>
+
+        <div id="universalTeamSelectionPage" class="page">
+            {/* */}
+        </div>
+
+        <div id="matchPlayPage" class="page hidden">
+            <div id="currentMatchDisplay" class="match-title-display">第Xマッチ</div>
+            <div id="timerDisplay" class="timer-display">02:00</div>
+
+            <div id="timerControlsPreStart" class="button-group">
+                <button id="startButton" class="btn btn-primary">開始</button>
+            </div>
+            <div id="timerControlsActive" class="button-group hidden">
+                <button id="startButtonActive" class="btn btn-primary" disabled>開始</button>
+                <button id="pauseButton" class="btn btn-secondary">一時停止</button>
+                <button id="endMatchButton" class="btn btn-danger">試合手動終了(理由記録へ)</button>
+                <button id="resetMatchTimerButton" class="btn btn-warning" disabled>このマッチのタイマーリセット</button>
+            </div>
+            
+            <div class="status-handling-container">
+                <div id="manualEndReasonContainer" class="hidden">
+                    <h2 class="section-title">終了理由記録</h2>
+                    <div class="team-select-group">
+                        <label for="endedByTeamSelect" class="mr-2">対象チーム:</label>
+                        <select id="endedByTeamSelect" class="flex-grow"></select>
+                    </div>
+                    <div class="team-select-group mt-3">
+                        <label for="endReasonSelect" class="mr-2">理由:</label>
+                        <select id="endReasonSelect" class="flex-grow">
+                            {/* */}
+                        </select>
+                    </div>
+                    <button id="manualEndProceedToScoreButton" class="btn btn-primary mt-4" disabled>ボール数入力へ進む</button>
+                </div>
+
+                <div id="timeoutInfoContainer" class="hidden">
+                    <div id="timeoutMessageDisplay">試合終了</div>
+                    <button id="timeoutProceedToScoreButton" class="btn btn-primary">ボール数入力へ進む</button>
+                </div>
+            </div>
+            <div id="recordDisplayOnTimerPage" class="record-display">記録待機中...</div>
+        </div>
+
+        <div id="scoreInputPage" class="page hidden">
+            {/* */}
+        </div>
+
+        <div id="resultsPage" class="page hidden">
+            <div class="results-page-container">
+                <h2 class="section-title match-title-display">試合結果</h2>
+                <div id="resultsTeamsDisplay" class="results-teams-display">チームA vs チームB</div>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">マッチ</th>
+                            <th rowspan="2">状態</th>
+                            <th colspan="3" id="resultsHeaderTeamA">チームA</th> {/* チーム名はJSで設定 */}
+                            <th colspan="3" id="resultsHeaderTeamB">チームB</th> {/* チーム名はJSで設定 */}
+                        </tr>
+                        <tr>
+                            <th>オレンジ</th>
+                            <th>紫</th>
+                            <th>得点</th>
+                            <th>オレンジ</th>
+                            <th>紫</th>
+                            <th>得点</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        {/* */}
+                    </tbody>
+                </table>
+                <div id="summaryStatsContainer">
+                    {/* */}
+                </div>
+                <div id="overallWinnerDisplay" class="mt-4 font-bold text-2xl"></div>
+                <button id="startNewGameButton" class="btn btn-success mt-4">新しい試合を開始</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const universalTeamSelectionPage = document.getElementById('universalTeamSelectionPage');
+        const matchPlayPage = document.getElementById('matchPlayPage');
+        const scoreInputPage = document.getElementById('scoreInputPage');
+        const resultsPage = document.getElementById('resultsPage');
+
+        let teamASelect = document.getElementById('teamASelect'); 
+        let teamBSelect = document.getElementById('teamBSelect'); 
+        let selectedTeamsDisplay = document.getElementById('selectedTeamsDisplay'); 
+        let confirmTeamsButton = document.getElementById('confirmTeamsButton'); 
+        
+        const fullResetButton = document.getElementById('fullResetButton');
+        const currentMatchDisplay = document.getElementById('currentMatchDisplay');
+        const timerDisplay = document.getElementById('timerDisplay');
+        
+        const timerControlsPreStart = document.getElementById('timerControlsPreStart');
+        const timerControlsActive = document.getElementById('timerControlsActive');
+        const startButton = document.getElementById('startButton'); 
+        const startButtonActive = document.getElementById('startButtonActive'); 
+        const pauseButton = document.getElementById('pauseButton');
+        const resetMatchTimerButton = document.getElementById('resetMatchTimerButton');
+        const endMatchButton = document.getElementById('endMatchButton'); 
+        
+        const manualEndReasonContainer = document.getElementById('manualEndReasonContainer');
+        const endedByTeamSelect = document.getElementById('endedByTeamSelect');
+        const endReasonSelect = document.getElementById('endReasonSelect');
+        const manualEndProceedToScoreButton = document.getElementById('manualEndProceedToScoreButton');
+
+        const timeoutInfoContainer = document.getElementById('timeoutInfoContainer'); 
+        const timeoutMessageDisplay = document.getElementById('timeoutMessageDisplay'); 
+        const timeoutProceedToScoreButton = document.getElementById('timeoutProceedToScoreButton'); 
+        const recordDisplayOnTimerPage = document.getElementById('recordDisplayOnTimerPage');
+
+        let scoreTeamAName = document.getElementById('scoreTeamAName'); 
+        let teamAOrangeBallsSelect = document.getElementById('teamAOrangeBallsSelect'); 
+        let teamAPurpleBallsSelect = document.getElementById('teamAPurpleBallsSelect'); 
+        let scoreTeamBName = document.getElementById('scoreTeamBName'); 
+        let teamBOrangeBallsSelect = document.getElementById('teamBOrangeBallsSelect'); 
+        let teamBPurpleBallsSelect = document.getElementById('teamBPurpleBallsSelect'); 
+        let proceedToNextPhaseButton = document.getElementById('proceedToNextPhaseButton');
+        let backToMatchTimerButton = document.getElementById('backToMatchTimerButton');
+        let currentMatchScoreTitle = document.getElementById('currentMatchScoreTitle');
+        let selectedStatusOnScorePage = document.getElementById('selectedStatusOnScorePage');
+
+        let resultsTeamsDisplay = document.getElementById('resultsTeamsDisplay');
+        let resultsHeaderTeamA = document.getElementById('resultsHeaderTeamA'); 
+        let resultsHeaderTeamB = document.getElementById('resultsHeaderTeamB'); 
+        let resultsTableBody = document.getElementById('resultsTableBody');
+        let startNewGameButton = document.getElementById('startNewGameButton');
+        let summaryStatsContainer = document.getElementById('summaryStatsContainer'); 
+        let overallWinnerDisplay = document.getElementById('overallWinnerDisplay'); 
+
+
+        // --- Game State ---
+        const TOTAL_MATCHES = 3;
+        const INITIAL_TIME_SECONDS = 2 * 60; 
+        const MAX_ORANGE_BALLS = 8;
+        const MAX_PURPLE_BALLS = 2;
+
+        let currentMatchNumber = 1;
+        let timeLeft = INITIAL_TIME_SECONDS;
+        let timerInterval = null;
+        let timerRunning = false;
+        
+        let confirmedTeamA = "";
+        let confirmedTeamB = "";
+        let matchesData = []; 
+
+        const PENALTY_FIXED_SCORE_REASONS = [ 
+            "レッドゾーン接触(6.27)",
+            "故意のロボット接触(6.28)",
+            "相手フィールド接触(6.29)",
+            "分離パーツ接触(6.23)",
+            "試合開始後10秒ロボット不動(6.20)",
+            "両ロボット除去(6.21)", 
+            "両ロボット脱走(6.32.6)", 
+            "ロボットのサイズ超過(6.32.3)",
+            "フィールド・ボール破壊(6.32.7・6.32.8)",
+            "選手のロボット接触(6.33)",
+            "選手のフィールド接触(6.32.5)"
+        ];
+        const FOUL_COUNTING_REASONS = [...PENALTY_FIXED_SCORE_REASONS];
+
+
+        // --- Page Navigation & Display Control ---
+        function showPage(pageElement) {
+            [universalTeamSelectionPage, matchPlayPage, scoreInputPage, resultsPage].forEach(p => {
+                if (p) p.classList.add('hidden');
+            });
+            if (pageElement) {
+                pageElement.classList.remove('hidden');
+            }
+        }
+
+        function populateSelectWithOptions(selectElement, max, includeDefault = true, optionsArray = null) {
+            if (!selectElement) return; 
+            selectElement.innerHTML = ''; 
+            if (includeDefault) {
+                const defaultOption = new Option("選択", ""); 
+                selectElement.add(defaultOption);
+            }
+            if (optionsArray) {
+                optionsArray.forEach(opt => {
+                    if (typeof opt === 'object') { 
+                        selectElement.add(new Option(opt.text, opt.value));
+                    } else { 
+                        selectElement.add(new Option(opt, opt));
+                    }
+                });
+            } else {
+                for (let i = 0; i <= max; i++) {
+                    selectElement.add(new Option(i, i));
+                }
+            }
+        }
+        
+        function initializeScoreSelects() {
+            populateSelectWithOptions(teamAOrangeBallsSelect, MAX_ORANGE_BALLS, true);
+            populateSelectWithOptions(teamBOrangeBallsSelect, MAX_ORANGE_BALLS, true);
+            populateSelectWithOptions(teamAPurpleBallsSelect, MAX_PURPLE_BALLS, true);
+            populateSelectWithOptions(teamBPurpleBallsSelect, MAX_PURPLE_BALLS, true);
+        }
+        
+        function initializeEndReasonSelects() {
+            const endReasons = [
+                "コールド", 
+                ...PENALTY_FIXED_SCORE_REASONS,
+                "事故のロボット接触(6.28)", 
+                "全ロボット行動不能(6.32.9)", 
+                "オレンジボール5個以上10秒保持(6.30)" 
+            ];
+            const uniqueEndReasons = [...new Set(endReasons)]; 
+
+            populateSelectWithOptions(endReasonSelect, 0, true, uniqueEndReasons);
+            if (endedByTeamSelect) endedByTeamSelect.value = "";
+            if (endReasonSelect) endReasonSelect.value = "";
+        }
+
+
+        // --- Initialization and Resets ---
+        function initializeTeamSelection() {
+            const teamSelectionHTML = `
+                <div class="team-selection-container">
+                    <h2 class="section-title">対戦チーム選択</h2>
+                    <div class="team-select-group">
+                        <label for="teamASelectInternal">チームA:</label>
+                        <select id="teamASelectInternal"> <option value="">チームを選択</option>
+                        </select>
+                        <span class="mx-2 font-bold">vs</span>
+                        <label for="teamBSelectInternal">チームB:</label>
+                        <select id="teamBSelectInternal"> <option value="">チームを選択</option>
+                        </select>
+                    </div>
+                    <div id="selectedTeamsDisplayInternal">チームを選択してください</div>
+                    <button id="confirmTeamsButtonInternal" class="btn btn-primary mt-4" disabled>チーム決定して第1マッチへ</button>
+                </div>`;
+            if (universalTeamSelectionPage) universalTeamSelectionPage.innerHTML = teamSelectionHTML; 
+
+            teamASelect = document.getElementById('teamASelectInternal');
+            teamBSelect = document.getElementById('teamBSelectInternal');
+            selectedTeamsDisplay = document.getElementById('selectedTeamsDisplayInternal');
+            confirmTeamsButton = document.getElementById('confirmTeamsButtonInternal');
+
+            if (!teamASelect || !teamBSelect || !selectedTeamsDisplay || !confirmTeamsButton) {
+                console.error("Team selection elements not found after HTML injection.");
+                return;
+            }
+
+            teamASelect.innerHTML = '<option value="">チームを選択</option>';
+            teamBSelect.innerHTML = '<option value="">チームを選択</option>';
+            for (let i = 1; i <= 20; i++) {
+                const teamName = `チーム${i}`;
+                teamASelect.add(new Option(teamName, teamName));
+                teamBSelect.add(new Option(teamName, teamName));
+            }
+            selectedTeamsDisplay.textContent = "チームを選択してください";
+            confirmTeamsButton.disabled = true;
+            teamASelect.disabled = false;
+            teamBSelect.disabled = false;
+
+             teamASelect.addEventListener('change', handleTeamSelectionChange);
+             teamBSelect.addEventListener('change', handleTeamSelectionChange);
+             confirmTeamsButton.addEventListener('click', () => {
+                confirmedTeamA = teamASelect.value;
+                confirmedTeamB = teamBSelect.value;
+                teamASelect.disabled = true;
+                teamBSelect.disabled = true;
+                confirmTeamsButton.disabled = true; 
+                
+                if(resultsHeaderTeamA) resultsHeaderTeamA.textContent = confirmedTeamA;
+                if(resultsHeaderTeamB) resultsHeaderTeamB.textContent = confirmedTeamB;
+
+                setupNewMatch(1);
+            });
+        }
+        
+        function resetMatchSpecificUIData() {
+            timeLeft = INITIAL_TIME_SECONDS;
+            timerRunning = false;
+
+            if (timerInterval) clearInterval(timerInterval);
+            if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+            if(timerDisplay) timerDisplay.style.color = '#1d4ed8';
+            
+            if(timerControlsPreStart) timerControlsPreStart.classList.remove('hidden');
+            if(timerControlsActive) timerControlsActive.classList.add('hidden');
+            if(startButton) startButton.disabled = false; 
+            if(startButtonActive) startButtonActive.disabled = true; 
+            if(pauseButton) pauseButton.disabled = true;
+            if(endMatchButton) endMatchButton.disabled = false; 
+            if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+            
+            if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden'); 
+            if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden'); 
+            initializeEndReasonSelects(); 
+            if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "記録待機中...";
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+
+            [teamAOrangeBallsSelect, teamBOrangeBallsSelect, teamAPurpleBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
+                if (sel) {
+                    sel.value = "-1"; 
+                    sel.disabled = true; 
+                }
+            });
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
+        }
+
+        function setupNewMatch(matchNum) {
+            currentMatchNumber = matchNum;
+            if(currentMatchDisplay) currentMatchDisplay.textContent = `第${currentMatchNumber}マッチ`;
+            if(currentMatchScoreTitle) currentMatchScoreTitle.textContent = `第${currentMatchNumber}マッチ ボール数入力`; 
+            resetMatchSpecificUIData();
+            showPage(matchPlayPage);
+        }
+
+        function fullApplicationReset() {
+            currentMatchNumber = 1;
+            matchesData = [];
+            confirmedTeamA = "";
+            confirmedTeamB = "";
+            
+            initializeTeamSelection(); 
+            resetMatchSpecificUIData(); 
+            initializeScoreSelects(); 
+            initializeEndReasonSelects();
+
+            showPage(universalTeamSelectionPage);
+        }
+
+        // --- Team Selection Logic ---
+        function handleTeamSelectionChange() {
+            if (!teamASelect || !teamBSelect || !selectedTeamsDisplay || !confirmTeamsButton) return;
+            const teamAVal = teamASelect.value;
+            const teamBVal = teamBSelect.value;
+
+            if (teamAVal && teamBVal) {
+                if (teamAVal === teamBVal) {
+                    selectedTeamsDisplay.textContent = "異なるチームを選択してください";
+                    selectedTeamsDisplay.style.color = "red";
+                    confirmTeamsButton.disabled = true;
+                } else {
+                    selectedTeamsDisplay.textContent = `${teamAVal} vs ${teamBVal}`;
+                    selectedTeamsDisplay.style.color = "#1e40af";
+                    confirmTeamsButton.disabled = false;
+                }
+            } else {
+                selectedTeamsDisplay.textContent = "両方のチームを選択してください";
+                selectedTeamsDisplay.style.color = "orange";
+                confirmTeamsButton.disabled = true;
+            }
+        }
+
+        // --- Timer Logic ---
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (timerRunning || timeLeft === 0) return;
+            timerRunning = true;
+            
+            if(timerControlsPreStart) timerControlsPreStart.classList.add('hidden');
+            if(timerControlsActive) timerControlsActive.classList.remove('hidden');
+            if(startButtonActive) startButtonActive.disabled = true; 
+            if(pauseButton) pauseButton.disabled = false;
+            if(endMatchButton) endMatchButton.disabled = false; 
+            if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+
+
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "試合中...";
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+            if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden'); 
+            if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden'); 
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    timeLeft = 0;
+                    if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+                    if(timerDisplay) timerDisplay.style.color = '#dc2626';
+                    handleMatchEnd(true); 
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!timerRunning) return;
+            clearInterval(timerInterval);
+            timerRunning = false;
+            if(startButtonActive) startButtonActive.disabled = false; 
+            if(pauseButton) pauseButton.disabled = true;
+            if(resetMatchTimerButton) resetMatchTimerButton.disabled = false; 
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "一時停止中";
+        }
+
+        if(resetMatchTimerButton) resetMatchTimerButton.addEventListener('click', () => {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = INITIAL_TIME_SECONDS;
+            timerRunning = false; 
+            if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+            if(timerDisplay) timerDisplay.style.color = '#1d4ed8';
+            
+            if(timerControlsActive && !timerControlsActive.classList.contains('hidden')) {
+                if(startButtonActive) startButtonActive.disabled = false; 
+                if(pauseButton) pauseButton.disabled = true; 
+                if(endMatchButton) endMatchButton.disabled = false; 
+                if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+            }
+            
+            if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden');
+            if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden');
+            initializeEndReasonSelects();
+            if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "記録待機中...";
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+        });
+
+        if(endMatchButton) endMatchButton.addEventListener('click', () => { 
+            if (timerInterval) clearInterval(timerInterval);
+            timerRunning = false;
+            if(timerDisplay) timerDisplay.style.color = '#f59e0b'; 
+            handleMatchEnd(false); 
+        });
+        
+        function handleMatchEnd(isTimeout) {
+            if(timerControlsPreStart) timerControlsPreStart.classList.add('hidden'); 
+            if(timerControlsActive) timerControlsActive.classList.remove('hidden'); 
+            if(startButtonActive) startButtonActive.disabled = true; 
+            if(pauseButton) pauseButton.disabled = true;
+            if(endMatchButton) endMatchButton.disabled = true; 
+            if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+
+            if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+            matchesData[currentMatchNumber - 1].isColdGame = false; 
+            matchesData[currentMatchNumber - 1].isPenaltyFixedScore = false; 
+            matchesData[currentMatchNumber - 1].penaltyLosingTeam = ""; 
+            matchesData[currentMatchNumber - 1].matchWinner = null;
+
+
+            if (isTimeout) {
+                if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden'); 
+                if(timeoutInfoContainer) timeoutInfoContainer.classList.remove('hidden'); 
+                if(timeoutMessageDisplay) timeoutMessageDisplay.textContent = "試合終了"; 
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "時間切れ！";
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.add('recorded');
+                matchesData[currentMatchNumber - 1].status = "試合終了 (時間切れ)";
+            } else {
+                if(manualEndReasonContainer) manualEndReasonContainer.classList.remove('hidden');
+                if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden');
+                populateSelectWithOptions(endedByTeamSelect, 0, true, [
+                    {text: confirmedTeamA, value: confirmedTeamA},
+                    {text: confirmedTeamB, value: confirmedTeamB}
+                ]);
+                initializeEndReasonSelects(); 
+                if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "試合手動終了。終了理由を選択してください。";
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+            }
+        }
+        
+        function setupScorePageUI(statusText) { 
+            if(selectedStatusOnScorePage) selectedStatusOnScorePage.textContent = statusText;
+            const currentMatchRecord = matchesData[currentMatchNumber - 1] || {};
+
+            if (currentMatchNumber === 2) {
+                if(scoreTeamAName) scoreTeamAName.textContent = confirmedTeamB; 
+                if(scoreTeamBName) scoreTeamBName.textContent = confirmedTeamA; 
+            } else {
+                if(scoreTeamAName) scoreTeamAName.textContent = confirmedTeamA; 
+                if(scoreTeamBName) scoreTeamBName.textContent = confirmedTeamB; 
+            }
+
+            [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
+                if(sel) {
+                    sel.disabled = false;
+                    sel.value = "-1"; 
+                }
+            });
+
+            if (currentMatchRecord.isColdGame) {
+                const losingTeamName = currentMatchRecord.penaltyLosingTeam; 
+                let uiLosingOrangeSelect, uiWinningOrangeSelect;
+
+                if (currentMatchNumber === 2) { 
+                    uiLosingOrangeSelect = (losingTeamName === confirmedTeamB) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
+                    uiWinningOrangeSelect = (losingTeamName === confirmedTeamB) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
+                } else { 
+                    uiLosingOrangeSelect = (losingTeamName === confirmedTeamA) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
+                    uiWinningOrangeSelect = (losingTeamName === confirmedTeamA) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
+                }
+
+                if (uiLosingOrangeSelect) {
+                    uiLosingOrangeSelect.value = "0";
+                    uiLosingOrangeSelect.disabled = true;
+                }
+                if (uiWinningOrangeSelect) {
+                    uiWinningOrangeSelect.value = String(MAX_ORANGE_BALLS);
+                    uiWinningOrangeSelect.disabled = true;
+                }
+            }
+            
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.textContent = (currentMatchNumber < TOTAL_MATCHES) ? `第${currentMatchNumber + 1}マッチに進む` : "試合結果へ";
+            checkIfScoresAreComplete(); 
+            showPage(scoreInputPage);
+        }
+
+        if(timeoutProceedToScoreButton) timeoutProceedToScoreButton.addEventListener('click', () => {
+            const statusText = "試合終了 (時間切れ)"; 
+            const fullStatusMessage = `記録 (マッチ${currentMatchNumber}): 「${statusText}」`;
+            if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+            matchesData[currentMatchNumber - 1].isColdGame = false; 
+            matchesData[currentMatchNumber - 1].isPenaltyFixedScore = false;
+            setupScorePageUI(fullStatusMessage); 
+        });
+
+        if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.addEventListener('click', () => {
+            const team = endedByTeamSelect.value;
+            const reason = endReasonSelect.value;
+            const statusText = `${team} - ${reason}`;
+            const fullStatusMessage = `記録 (マッチ${currentMatchNumber}): 「${statusText}」`;
+            
+            const isCold = (reason === "コールド");
+            const isPenalty = PENALTY_FIXED_SCORE_REASONS.includes(reason);
+
+            if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+            matchesData[currentMatchNumber - 1].status = statusText;
+            matchesData[currentMatchNumber - 1].isColdGame = isCold;
+            matchesData[currentMatchNumber - 1].isPenaltyFixedScore = isPenalty;
+            matchesData[currentMatchNumber - 1].penaltyLosingTeam = (isCold || isPenalty) ? team : ""; 
+
+            setupScorePageUI(fullStatusMessage); 
+        });
+
+        function checkManualEndReasonSelection() {
+            if (endedByTeamSelect && endReasonSelect && endedByTeamSelect.value && endReasonSelect.value) {
+                if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = false;
+            } else {
+                if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+            }
+        }
+        if(endedByTeamSelect) endedByTeamSelect.addEventListener('change', checkManualEndReasonSelection);
+        if(endReasonSelect) endReasonSelect.addEventListener('change', checkManualEndReasonSelection);
+        
+        if(backToMatchTimerButton) backToMatchTimerButton.addEventListener('click', () => {
+            showPage(matchPlayPage);
+            if (!timerRunning) { 
+                if(timerControlsActive && !timerControlsActive.classList.contains('hidden')) {
+                    if(timeLeft > 0) { 
+                        if(startButtonActive) startButtonActive.disabled = false;
+                        if(pauseButton) pauseButton.disabled = true;
+                        if(endMatchButton) endMatchButton.disabled = false;
+                        if(resetMatchTimerButton) resetMatchTimerButton.disabled = !pauseButton.disabled; 
+                    } else { 
+                        if(startButtonActive) startButtonActive.disabled = true;
+                        if(pauseButton) pauseButton.disabled = true;
+                        if(endMatchButton) endMatchButton.disabled = true;
+                        if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+                    }
+                }
+                if (manualEndReasonContainer && !manualEndReasonContainer.classList.contains('hidden')) {
+                } else if (timeoutInfoContainer && !timeoutInfoContainer.classList.contains('hidden')) {
+                } else {
+                    if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden');
+                    if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden');
+                }
+            }
+        });
+
+
+        // --- Score Input Logic (Selects) ---
+        function handleScoreSelectChange(sourceSelect, targetSelect, maxTotal) {
+            if (!sourceSelect || !targetSelect) return;
+            if (!sourceSelect.disabled) { 
+                const sourceValue = parseInt(sourceSelect.value);
+                if (sourceValue >= 0 && sourceValue <= maxTotal) { 
+                    targetSelect.value = maxTotal - sourceValue;
+                } else { 
+                    targetSelect.value = "-1"; 
+                }
+            }
+            checkIfScoresAreComplete();
+        }
+
+        function checkIfScoresAreComplete() {
+            const currentMatchRecord = matchesData[currentMatchNumber - 1] || {};
+            const valuesToValidate = [];
+
+            if (currentMatchRecord.isColdGame) { 
+                valuesToValidate.push(teamAPurpleBallsSelect?.value, teamBPurpleBallsSelect?.value);
+            } else { 
+                valuesToValidate.push(
+                    teamAOrangeBallsSelect?.value, teamAPurpleBallsSelect?.value,
+                    teamBOrangeBallsSelect?.value, teamBPurpleBallsSelect?.value
+                );
+            }
+            
+            const allSelected = valuesToValidate.every(val => val && parseInt(val) !== -1 && val !== "");
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = !allSelected;
+
+            if(allSelected) { 
+                if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+                
+                let uiOrangeLeftVal = parseInt(teamAOrangeBallsSelect.value);
+                let uiPurpleLeftVal = parseInt(teamAPurpleBallsSelect.value);
+                let uiOrangeRightVal = parseInt(teamBOrangeBallsSelect.value);
+                let uiPurpleRightVal = parseInt(teamBPurpleBallsSelect.value);
+
+                if (currentMatchNumber === 2) {
+                    matchesData[currentMatchNumber - 1].teamB_Orange = uiOrangeLeftVal;
+                    matchesData[currentMatchNumber - 1].teamB_Purple = uiPurpleLeftVal;
+                    matchesData[currentMatchNumber - 1].teamA_Orange = uiOrangeRightVal;
+                    matchesData[currentMatchNumber - 1].teamA_Purple = uiPurpleRightVal;
+                } else {
+                    matchesData[currentMatchNumber - 1].teamA_Orange = uiOrangeLeftVal;
+                    matchesData[currentMatchNumber - 1].teamA_Purple = uiPurpleLeftVal;
+                    matchesData[currentMatchNumber - 1].teamB_Orange = uiOrangeRightVal;
+                    matchesData[currentMatchNumber - 1].teamB_Purple = uiPurpleRightVal;
+                }
+            }
+        }
+
+        if(teamAOrangeBallsSelect) teamAOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAOrangeBallsSelect, teamBOrangeBallsSelect, MAX_ORANGE_BALLS));
+        if(teamBOrangeBallsSelect) teamBOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBOrangeBallsSelect, teamAOrangeBallsSelect, MAX_ORANGE_BALLS));
+        if(teamAPurpleBallsSelect) teamAPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAPurpleBallsSelect, teamBPurpleBallsSelect, MAX_PURPLE_BALLS));
+        if(teamBPurpleBallsSelect) teamBPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBPurpleBallsSelect, teamAPurpleBallsSelect, MAX_PURPLE_BALLS));
+
+        if(proceedToNextPhaseButton) proceedToNextPhaseButton.addEventListener('click', () => {
+            if (currentMatchNumber < TOTAL_MATCHES) {
+                setupNewMatch(currentMatchNumber + 1);
+            } else {
+                displayResults();
+            }
+        });
+
+        // --- Results Page Logic ---
+        function displayResults() {
+            if(resultsTeamsDisplay) resultsTeamsDisplay.textContent = `${confirmedTeamA} vs ${confirmedTeamB}`;
+            if(resultsTableBody) resultsTableBody.innerHTML = ''; 
+            
+            let gameTotalWinsTeamA = 0;
+            let gameTotalWinsTeamB = 0;
+            let gameTotalFoulsTeamA = 0;
+            let gameTotalFoulsTeamB = 0;
+            let gameTotalOrangeBallsTeamA = 0;
+            let gameTotalPurpleBallsTeamA = 0;
+            let gameTotalOrangeBallsTeamB = 0;
+            let gameTotalPurpleBallsTeamB = 0;
+
+
+            for (let i = 0; i < TOTAL_MATCHES; i++) {
+                const match = matchesData[i] || {}; 
+                if(!resultsTableBody) continue;
+                const row = resultsTableBody.insertRow();
+                
+                const cellMatchNum = row.insertCell();
+                cellMatchNum.textContent = `第${i + 1}マッチ`;
+                const cellStatus = row.insertCell();
+                cellStatus.textContent = match.status || "未記録";
+
+                const reasonPart = match.status ? match.status.split(' - ')[1] : "";
+                if (FOUL_COUNTING_REASONS.includes(reasonPart)) {
+                    if (match.penaltyLosingTeam === confirmedTeamA) { 
+                        gameTotalFoulsTeamA++;
+                    } else if (match.penaltyLosingTeam === confirmedTeamB) {
+                        gameTotalFoulsTeamB++;
+                    }
+                }
+
+                let teamAOrange = match.teamA_Orange !== undefined ? match.teamA_Orange : null;
+                let teamAPurple = match.teamA_Purple !== undefined ? match.teamA_Purple : null;
+                let teamAScore = null;
+
+                let teamBOrange = match.teamB_Orange !== undefined ? match.teamB_Orange : null;
+                let teamBPurple = match.teamB_Purple !== undefined ? match.teamB_Purple : null;
+                let teamBScore = null;
+
+                if (teamAOrange !== null) gameTotalOrangeBallsTeamA += teamAOrange;
+                if (teamAPurple !== null) gameTotalPurpleBallsTeamA += teamAPurple;
+                if (teamBOrange !== null) gameTotalOrangeBallsTeamB += teamBOrange;
+                if (teamBPurple !== null) gameTotalPurpleBallsTeamB += teamBPurple;
+
+                if (match.isColdGame) { 
+                    if (match.penaltyLosingTeam === confirmedTeamA) { 
+                        teamAScore = -4; teamBScore = 8;
+                    } else if (match.penaltyLosingTeam === confirmedTeamB) { 
+                        teamAScore = 8; teamBScore = -4;
+                    }
+                } else if (match.isPenaltyFixedScore) { 
+                    if (match.penaltyLosingTeam === confirmedTeamA) { 
+                        teamAScore = 8; 
+                        teamBScore = -4;
+                    } else if (match.penaltyLosingTeam === confirmedTeamB) { 
+                        teamAScore = -4; 
+                        teamBScore = 8; 
+                    }
+                } else { 
+                    if (teamAOrange !== null && teamAPurple !== null) {
+                        teamAScore = teamAOrange - (teamAPurple * 2);
+                    }
+                    if (teamBOrange !== null && teamBPurple !== null) {
+                        teamBScore = teamBOrange - (teamBPurple * 2);
+                    }
+                }
+                
+                match.winner = null; 
+                if (teamAScore !== null && teamBScore !== null) {
+                    if (teamAScore < teamBScore) { match.winner = confirmedTeamA; gameTotalWinsTeamA++; }
+                    else if (teamBScore < teamAScore) { match.winner = confirmedTeamB; gameTotalWinsTeamB++; }
+                    else { match.winner = "draw"; }
+                }
+
+                const cellTeamAOrange = row.insertCell(); cellTeamAOrange.textContent = teamAOrange !== null ? teamAOrange : "-";
+                const cellTeamAPurple = row.insertCell(); cellTeamAPurple.textContent = teamAPurple !== null ? teamAPurple : "-";
+                const cellTeamAScore = row.insertCell(); cellTeamAScore.textContent = teamAScore !== null ? teamAScore : "-";
+                const cellTeamBOrange = row.insertCell(); cellTeamBOrange.textContent = teamBOrange !== null ? teamBOrange : "-";
+                const cellTeamBPurple = row.insertCell(); cellTeamBPurple.textContent = teamBPurple !== null ? teamBPurple : "-";
+                const cellTeamBScore = row.insertCell(); cellTeamBScore.textContent = teamBScore !== null ? teamBScore : "-";
+
+                const cellsToHighlightA = [cellTeamAOrange, cellTeamAPurple, cellTeamAScore];
+                const cellsToHighlightB = [cellTeamBOrange, cellTeamBPurple, cellTeamBScore];
+
+                cellsToHighlightA.forEach(cell => cell.classList.remove('highlight-winner-cell', 'highlight-draw-cell'));
+                cellsToHighlightB.forEach(cell => cell.classList.remove('highlight-winner-cell', 'highlight-draw-cell'));
+
+                if (match.winner === confirmedTeamA) {
+                    cellsToHighlightA.forEach(cell => cell.classList.add('highlight-winner-cell'));
+                } else if (match.winner === confirmedTeamB) {
+                    cellsToHighlightB.forEach(cell => cell.classList.add('highlight-winner-cell'));
+                } else if (match.winner === "draw") {
+                    cellsToHighlightA.forEach(cell => cell.classList.add('highlight-draw-cell'));
+                    cellsToHighlightB.forEach(cell => cell.classList.add('highlight-draw-cell'));
+                }
+            }
+
+            let overallWinner = null;
+            let overallDraw = false;
+
+            if (gameTotalWinsTeamA > gameTotalWinsTeamB) {
+                overallWinner = confirmedTeamA;
+            } else if (gameTotalWinsTeamB > gameTotalWinsTeamA) {
+                overallWinner = confirmedTeamB;
+            } else { 
+                if (gameTotalFoulsTeamA < gameTotalFoulsTeamB) {
+                    overallWinner = confirmedTeamA;
+                } else if (gameTotalFoulsTeamB < gameTotalFoulsTeamA) {
+                    overallWinner = confirmedTeamB;
+                } else { 
+                    const overallScoreTeamA = gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2);
+                    const overallScoreTeamB = gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2);
+                    if (overallScoreTeamA < overallScoreTeamB) { 
+                        overallWinner = confirmedTeamA;
+                    } else if (overallScoreTeamB < overallScoreTeamA) {
+                        overallWinner = confirmedTeamB;
+                    } else { 
+                        overallDraw = true;
+                    }
+                }
+            }
+
+
+            if (summaryStatsContainer) {
+                summaryStatsContainer.innerHTML = `
+                    <h3 class="font-bold mb-2 mt-4 text-xl">総計</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>チーム</th>
+                                <th>勝利マッチ数</th>
+                                <th>総違反回数</th>
+                                <th>総オレンジ</th>
+                                <th>総紫</th>
+                                <th>総ボールスコア</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="summaryRowTeamA">
+                                <td id="summaryNameTeamA">${confirmedTeamA}</td>
+                                <td>${gameTotalWinsTeamA}</td>
+                                <td>${gameTotalFoulsTeamA}</td>
+                                <td>${gameTotalOrangeBallsTeamA}</td>
+                                <td>${gameTotalPurpleBallsTeamA}</td>
+                                <td>${gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2)}</td>
+                            </tr>
+                            <tr id="summaryRowTeamB">
+                                <td id="summaryNameTeamB">${confirmedTeamB}</td>
+                                <td>${gameTotalWinsTeamB}</td>
+                                <td>${gameTotalFoulsTeamB}</td>
+                                <td>${gameTotalOrangeBallsTeamB}</td>
+                                <td>${gameTotalPurpleBallsTeamB}</td>
+                                <td>${gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+
+                const summaryRowTeamA = document.getElementById('summaryRowTeamA');
+                const summaryRowTeamB = document.getElementById('summaryRowTeamB');
+                const summaryNameTeamA = document.getElementById('summaryNameTeamA');
+                const summaryNameTeamB = document.getElementById('summaryNameTeamB');
+
+                if (summaryRowTeamA) summaryRowTeamA.classList.remove('overall-winner-row');
+                if (summaryRowTeamB) summaryRowTeamB.classList.remove('overall-winner-row');
+                if (summaryNameTeamA) summaryNameTeamA.classList.remove('overall-draw-team-name');
+                if (summaryNameTeamB) summaryNameTeamB.classList.remove('overall-draw-team-name');
+
+
+                if (overallWinner === confirmedTeamA && summaryRowTeamA) {
+                    summaryRowTeamA.classList.add('overall-winner-row');
+                } else if (overallWinner === confirmedTeamB && summaryRowTeamB) {
+                    summaryRowTeamB.classList.add('overall-winner-row');
+                } else if (overallDraw && summaryNameTeamA && summaryNameTeamB) {
+                    summaryNameTeamA.classList.add('overall-draw-team-name');
+                    summaryNameTeamB.classList.add('overall-draw-team-name');
+                }
+            }
+            if(overallWinnerDisplay) {
+                if (overallWinner) {
+                    overallWinnerDisplay.textContent = `総合結果: ${overallWinner} の勝利！`;
+                    overallWinnerDisplay.style.color = 'green';
+                } else if (overallDraw) {
+                    overallWinnerDisplay.textContent = "総合結果: 引き分け";
+                    overallWinnerDisplay.style.color = 'red';
+                } else {
+                    overallWinnerDisplay.textContent = ""; 
+                }
+            }
+
+
+            showPage(resultsPage);
+        }
+        
+        if(startNewGameButton) startNewGameButton.addEventListener('click', fullApplicationReset);
+        if(fullResetButton) fullResetButton.addEventListener('click', fullApplicationReset);
+
+        // --- Initial Setup ---
+        function injectMissingHTML() {
+            if (universalTeamSelectionPage && universalTeamSelectionPage.children.length === 0) {
+                 const teamSelectionHTML = `
+                    <div class="team-selection-container">
+                        <h2 class="section-title">対戦チーム選択</h2>
+                        <div class="team-select-group">
+                            <label for="teamASelectInternal">チームA:</label>
+                            <select id="teamASelectInternal"><option value="">チームを選択</option></select>
+                            <span class="mx-2 font-bold">vs</span>
+                            <label for="teamBSelectInternal">チームB:</label>
+                            <select id="teamBSelectInternal"><option value="">チームを選択</option></select>
+                        </div>
+                        <div id="selectedTeamsDisplayInternal">チームを選択してください</div>
+                        <button id="confirmTeamsButtonInternal" class="btn btn-primary mt-4" disabled>チーム決定して第1マッチへ</button>
+                    </div>`;
+                universalTeamSelectionPage.innerHTML = teamSelectionHTML;
+            }
+            if (scoreInputPage && scoreInputPage.children.length === 0) {
+                const scoreInputHTML = `
+                    <div class="score-input-page-container">
+                        <div id="currentMatchScoreTitleInternal" class="match-title-display">第Xマッチ ボール数入力</div>
+                        <div id="selectedStatusOnScorePageInternal" class="record-display">状態記録がここに表示されます</div>
+                        <h2 class="section-title">ボール数入力</h2>
+                        <div class="score-input-area">
+                            <div class="score-team-section">
+                                <h3 id="scoreTeamANameInternal">チームA</h3>
+                                <div class="score-input-group">
+                                    <label for="teamAOrangeBallsSelectInternal">オレンジボール (0-8):</label>
+                                    <select id="teamAOrangeBallsSelectInternal" disabled></select>
+                                </div>
+                                <div class="score-input-group">
+                                    <label for="teamAPurpleBallsSelectInternal">紫ボール (0-2):</label>
+                                    <select id="teamAPurpleBallsSelectInternal" disabled></select>
+                                </div>
+                            </div>
+                            <div class="score-team-section">
+                                <h3 id="scoreTeamBNameInternal">チームB</h3>
+                                <div class="score-input-group">
+                                    <label for="teamBOrangeBallsSelectInternal">オレンジボール (0-8):</label>
+                                    <select id="teamBOrangeBallsSelectInternal" disabled></select>
+                                </div>
+                                <div class="score-input-group">
+                                    <label for="teamBPurpleBallsSelectInternal">紫ボール (0-2):</label>
+                                    <select id="teamBPurpleBallsSelectInternal" disabled></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="next-match-btn-container">
+                            <button id="proceedToNextPhaseButtonInternal" class="btn btn-primary" disabled>次へ</button>
+                        </div>
+                        <button id="backToMatchTimerButtonInternal" class="btn btn-secondary mt-3">このマッチのタイマー画面に戻る</button>
+                    </div>`;
+                scoreInputPage.innerHTML = scoreInputHTML;
+            }
+             if (resultsPage && resultsPage.children.length === 0) {
+                const resultsHTML = `
+                    <div class="results-page-container">
+                        <h2 class="section-title match-title-display">試合結果</h2>
+                        <div id="resultsTeamsDisplayInternal" class="results-teams-display">チームA vs チームB</div>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">マッチ</th> <th rowspan="2">状態</th>
+                                    <th colspan="3" id="resultsHeaderTeamAInternal">チームA</th>
+                                    <th colspan="3" id="resultsHeaderTeamBInternal">チームB</th>
+                                </tr>
+                                <tr>
+                                    <th>オレンジ</th><th>紫</th><th>得点</th>
+                                    <th>オレンジ</th><th>紫</th><th>得点</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBodyInternal"></tbody>
+                        </table>
+                        <div id="summaryStatsContainerInternal"></div>
+                        <div id="overallWinnerDisplayInternal" class="mt-4 font-bold text-2xl"></div>
+                        <button id="startNewGameButtonInternal" class="btn btn-success mt-4">新しい試合を開始</button>
+                    </div>`;
+                resultsPage.innerHTML = resultsHTML;
+            }
+        }
+
+        function reassignDynamicPageElements() {
+            currentMatchScoreTitle = document.getElementById('currentMatchScoreTitleInternal') || document.getElementById('currentMatchScoreTitle');
+            selectedStatusOnScorePage = document.getElementById('selectedStatusOnScorePageInternal') || document.getElementById('selectedStatusOnScorePage');
+            scoreTeamAName = document.getElementById('scoreTeamANameInternal') || document.getElementById('scoreTeamAName');
+            teamAOrangeBallsSelect = document.getElementById('teamAOrangeBallsSelectInternal') || document.getElementById('teamAOrangeBallsSelect');
+            teamAPurpleBallsSelect = document.getElementById('teamAPurpleBallsSelectInternal') || document.getElementById('teamAPurpleBallsSelect');
+            scoreTeamBName = document.getElementById('scoreTeamBNameInternal') || document.getElementById('scoreTeamBName');
+            teamBOrangeBallsSelect = document.getElementById('teamBOrangeBallsSelectInternal') || document.getElementById('teamBOrangeBallsSelect');
+            teamBPurpleBallsSelect = document.getElementById('teamBPurpleBallsSelectInternal') || document.getElementById('teamBPurpleBallsSelect');
+            proceedToNextPhaseButton = document.getElementById('proceedToNextPhaseButtonInternal') || document.getElementById('proceedToNextPhaseButton');
+            backToMatchTimerButton = document.getElementById('backToMatchTimerButtonInternal') || document.getElementById('backToMatchTimerButton');
+             if(backToMatchTimerButton) backToMatchTimerButton.addEventListener('click', () => { 
+                showPage(matchPlayPage);
+                 if (manualEndReasonContainer && timerControlsActive && !timerRunning && !manualEndReasonContainer.classList.contains('hidden')) {
+                    timerControlsActive.classList.remove('hidden');
+                    if(startButtonActive) startButtonActive.disabled = true;
+                    if(pauseButton) pauseButton.disabled = true;
+                    if(endMatchButton) endMatchButton.disabled = false; 
+                    if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+                } else if (timeoutInfoContainer && timerControlsActive && !timerRunning && !timeoutInfoContainer.classList.contains('hidden')) {
+                    timerControlsActive.classList.remove('hidden');
+                    if(startButtonActive) startButtonActive.disabled = true;
+                    if(pauseButton) pauseButton.disabled = true;
+                    if(endMatchButton) endMatchButton.disabled = true;
+                    if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+                }
+            });
+            if(teamAOrangeBallsSelect) teamAOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAOrangeBallsSelect, teamBOrangeBallsSelect, MAX_ORANGE_BALLS));
+            if(teamBOrangeBallsSelect) teamBOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBOrangeBallsSelect, teamAOrangeBallsSelect, MAX_ORANGE_BALLS));
+            if(teamAPurpleBallsSelect) teamAPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAPurpleBallsSelect, teamBPurpleBallsSelect, MAX_PURPLE_BALLS));
+            if(teamBPurpleBallsSelect) teamBPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBPurpleBallsSelect, teamAPurpleBallsSelect, MAX_PURPLE_BALLS));
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.addEventListener('click', () => {
+                if (currentMatchNumber < TOTAL_MATCHES) {
+                    setupNewMatch(currentMatchNumber + 1);
+                } else {
+                    displayResults();
+                }
+            });
+
+            resultsTeamsDisplay = document.getElementById('resultsTeamsDisplayInternal') || document.getElementById('resultsTeamsDisplay');
+            resultsHeaderTeamA = document.getElementById('resultsHeaderTeamAInternal') || document.getElementById('resultsHeaderTeamA');
+            resultsHeaderTeamB = document.getElementById('resultsHeaderTeamBInternal') || document.getElementById('resultsHeaderTeamB');
+            resultsTableBody = document.getElementById('resultsTableBodyInternal') || document.getElementById('resultsTableBody');
+            startNewGameButton = document.getElementById('startNewGameButtonInternal') || document.getElementById('startNewGameButton');
+            summaryStatsContainer = document.getElementById('summaryStatsContainerInternal') || document.getElementById('summaryStatsContainer'); 
+            overallWinnerDisplay = document.getElementById('overallWinnerDisplayInternal') || document.getElementById('overallWinnerDisplay');
+            if(startNewGameButton) startNewGameButton.addEventListener('click', fullApplicationReset);
+        }
+
+
+        window.onload = () => {
+            injectMissingHTML(); 
+            reassignDynamicPageElements(); 
+
+            if(startButton) startButton.addEventListener('click', startTimer);
+            if(startButtonActive) startButtonActive.addEventListener('click', startTimer); 
+            if(pauseButton) pauseButton.addEventListener('click', pauseTimer);
+            if(fullResetButton) fullResetButton.addEventListener('click', fullApplicationReset);
+            
+            fullApplicationReset(); 
+        };
+    </script>
 </body>
 </html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>対戦競技タイマー (3マッチ制)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+        .page { width: 100%; }
+
+        .match-title-display {
+            font-size: 2.25rem; /* 36px */
+            font-weight: bold;
+            color: #111827; /* gray-900 */
+            margin-bottom: 15px;
+        }
+
+        .team-selection-container {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .team-selection-container h2, .section-title {
+            font-size: 1.25rem; /* 20px */
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+        .team-select-group {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .team-select-group label { font-size: 0.9rem; color: #4b5563; }
+        .team-select-group select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            flex-grow: 1;
+        }
+        #selectedTeamsDisplay {
+            font-size: 1.1rem; font-weight: bold; color: #1e40af;
+            margin-top: 10px; min-height: 25px;
+        }
+
+        .timer-display {
+            font-size: 7rem; 
+            font-weight: bold;
+            color: #1d4ed8;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #eff6ff;
+            border-radius: 8px;
+        }
+
+        .button-group {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 15px; font-size: 1rem; border-radius: 8px;
+            border: none; cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            min-width: 100px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background-color: #2563eb; color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-secondary { background-color: #64748b; color: white; }
+        .btn-secondary:hover { background-color: #475569; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
+        .btn-danger { background-color: #dc2626; color: white; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-success { background-color: #16a34a; color: white; } /* Not used for status buttons anymore */
+        .btn-success:hover { background-color: #15803d; }
+        .btn:disabled {
+            background-color: #9ca3af; color: #e5e7eb; cursor: not-allowed;
+        }
+
+        .status-handling-container, /* Renamed from status-buttons-container */
+        .score-input-page-container, 
+        .results-page-container {
+            border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
+        }
+        .record-display { 
+            margin-top: 10px; padding: 10px 15px; background-color: #f3f4f6;
+            border-radius: 8px; font-size: 1rem; color: #1f2937;
+            min-height: 40px; display: flex; align-items: center; justify-content: center;
+        }
+        .record-display.recorded {
+            background-color: #d1fae5; color: #065f46; font-weight: bold;
+        }
+        
+        #timeoutInfoContainer { margin-top: 15px; }
+        #timeoutMessageDisplay {
+            font-size: 1.75rem; 
+            font-weight: bold;
+            color: #b91c1c; 
+            margin-bottom: 15px;
+        }
+        /* Manual End Reason Container Styles */
+        #manualEndReasonContainer .team-select-group { /* Reuse existing style */
+            margin-bottom: 15px; /* Add some spacing */
+        }
+
+
+        #selectedStatusOnScorePage { 
+            font-size: 1.1rem; font-weight: bold; color: #065f46;
+            background-color: #d1fae5; padding: 10px 15px;
+            border-radius: 8px; margin-bottom: 20px;
+        }
+        .score-input-area {
+            display: flex; justify-content: space-around; gap: 20px; margin-top: 10px;
+        }
+        .score-team-section {
+            flex: 1; padding: 15px; border: 1px solid #d1d5db;
+            border-radius: 8px; background-color: #f9fafb;
+        }
+        .score-team-section h3 {
+            font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 10px;
+        }
+        .score-input-group { margin-bottom: 10px; }
+        .score-input-group label {
+            display: block; font-size: 0.9rem; color: #4b5563; margin-bottom: 5px;
+        }
+        .score-input-group select { 
+            width: 100%; padding: 8px; border-radius: 6px;
+            border: 1px solid #d1d5db; box-sizing: border-box;
+        }
+        .score-input-group select:disabled {
+            background-color: #e5e7eb; cursor: not-allowed;
+        }
+        .next-match-btn-container button { margin-top: 20px; }
+
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .results-table th, .results-table td {
+            border: 2px solid #000000; 
+            padding: 8px 12px; text-align: left;
+            font-size: 1.25rem; 
+        }
+        .results-table th { background-color: #f3f4f6; font-weight: 600; }
+        .results-teams-display { font-size: 1.2rem; font-weight: bold; margin-bottom:15px; }
+        .highlight-loser-cell {
+            background-color: #fee2e2; 
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-2 text-gray-800">試合タイマー＆スコアボード (3マッチ制)</h1>
+        <button id="fullResetButton" class="btn btn-danger mb-4">全体リセット</button>
+
+        <div id="universalTeamSelectionPage" class="page">
+            </div>
+
+        <div id="matchPlayPage" class="page hidden">
+            <div id="currentMatchDisplay" class="match-title-display">第Xマッチ</div>
+            <div id="timerDisplay" class="timer-display">02:00</div>
+
+            <div id="timerControlsPreStart" class="button-group">
+                <button id="startButton" class="btn btn-primary">開始</button>
+            </div>
+            <div id="timerControlsActive" class="button-group hidden">
+                <button id="startButtonActive" class="btn btn-primary" disabled>開始</button>
+                <button id="pauseButton" class="btn btn-secondary">一時停止</button>
+                <button id="resetMatchTimerButton" class="btn btn-warning">このマッチのタイマーリセット</button>
+                <button id="endMatchButton" class="btn btn-danger">試合手動終了(理由記録へ)</button>
+            </div>
+            
+            <div class="status-handling-container">
+                <div id="manualEndReasonContainer" class="hidden">
+                    <h2 class="section-title">終了理由記録</h2>
+                    <div class="team-select-group">
+                        <label for="endedByTeamSelect" class="mr-2">対象チーム:</label>
+                        <select id="endedByTeamSelect" class="flex-grow"></select>
+                    </div>
+                    <div class="team-select-group mt-3">
+                        <label for="endReasonSelect" class="mr-2">理由:</label>
+                        <select id="endReasonSelect" class="flex-grow">
+                            <option value="">理由を選択</option>
+                            <option value="違反1">違反1</option>
+                            <option value="違反2">違反2</option>
+                            <option value="違反3">違反3</option>
+                            <option value="違反4">違反4</option>
+                            <option value="コールド">コールド</option>
+                        </select>
+                    </div>
+                    <button id="manualEndProceedToScoreButton" class="btn btn-primary mt-4" disabled>得点入力へ進む</button>
+                </div>
+
+                <div id="timeoutInfoContainer" class="hidden">
+                    <div id="timeoutMessageDisplay">試合終了</div>
+                    <button id="timeoutProceedToScoreButton" class="btn btn-primary">得点入力へ進む</button>
+                </div>
+            </div>
+            <div id="recordDisplayOnTimerPage" class="record-display">記録待機中...</div>
+        </div>
+
+        <div id="scoreInputPage" class="page hidden">
+            </div>
+
+        <div id="resultsPage" class="page hidden">
+            </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const universalTeamSelectionPage = document.getElementById('universalTeamSelectionPage');
+        const matchPlayPage = document.getElementById('matchPlayPage');
+        const scoreInputPage = document.getElementById('scoreInputPage');
+        const resultsPage = document.getElementById('resultsPage');
+
+        // These global constants might be null if their elements are dynamically injected later.
+        // It's safer to get them when needed or after ensuring they are injected.
+        // For now, we assume the initial HTML structure for these exists or they are handled correctly.
+        let teamASelect = document.getElementById('teamASelect'); // Will be re-assigned in initializeTeamSelection
+        let teamBSelect = document.getElementById('teamBSelect'); // Will be re-assigned
+        let selectedTeamsDisplay = document.getElementById('selectedTeamsDisplay'); // Will be re-assigned
+        let confirmTeamsButton = document.getElementById('confirmTeamsButton'); // Will be re-assigned
+        
+        const fullResetButton = document.getElementById('fullResetButton');
+        const currentMatchDisplay = document.getElementById('currentMatchDisplay');
+        const timerDisplay = document.getElementById('timerDisplay');
+        
+        const timerControlsPreStart = document.getElementById('timerControlsPreStart');
+        const timerControlsActive = document.getElementById('timerControlsActive');
+        const startButton = document.getElementById('startButton'); 
+        const startButtonActive = document.getElementById('startButtonActive'); 
+        const pauseButton = document.getElementById('pauseButton');
+        const resetMatchTimerButton = document.getElementById('resetMatchTimerButton');
+        const endMatchButton = document.getElementById('endMatchButton'); 
+        
+        const manualEndReasonContainer = document.getElementById('manualEndReasonContainer');
+        const endedByTeamSelect = document.getElementById('endedByTeamSelect');
+        const endReasonSelect = document.getElementById('endReasonSelect');
+        const manualEndProceedToScoreButton = document.getElementById('manualEndProceedToScoreButton');
+
+        const timeoutInfoContainer = document.getElementById('timeoutInfoContainer'); 
+        const timeoutMessageDisplay = document.getElementById('timeoutMessageDisplay'); 
+        const timeoutProceedToScoreButton = document.getElementById('timeoutProceedToScoreButton'); 
+        const recordDisplayOnTimerPage = document.getElementById('recordDisplayOnTimerPage');
+
+        // Elements for scoreInputPage - assume they are found after injectMissingHTML or similar
+        let scoreTeamAName = document.getElementById('scoreTeamAName');
+        let teamAOrangeBallsSelect = document.getElementById('teamAOrangeBallsSelect');
+        let teamAPurpleBallsSelect = document.getElementById('teamAPurpleBallsSelect');
+        let scoreTeamBName = document.getElementById('scoreTeamBName');
+        let teamBOrangeBallsSelect = document.getElementById('teamBOrangeBallsSelect');
+        let teamBPurpleBallsSelect = document.getElementById('teamBPurpleBallsSelect');
+        let proceedToNextPhaseButton = document.getElementById('proceedToNextPhaseButton');
+        let backToMatchTimerButton = document.getElementById('backToMatchTimerButton');
+        let currentMatchScoreTitle = document.getElementById('currentMatchScoreTitle');
+        let selectedStatusOnScorePage = document.getElementById('selectedStatusOnScorePage');
+
+
+        // Elements for resultsPage
+        let resultsTeamsDisplay = document.getElementById('resultsTeamsDisplay');
+        let resultsHeaderTeamA = document.getElementById('resultsHeaderTeamA'); 
+        let resultsHeaderTeamB = document.getElementById('resultsHeaderTeamB'); 
+        let resultsTableBody = document.getElementById('resultsTableBody');
+        let startNewGameButton = document.getElementById('startNewGameButton');
+
+
+        // --- Game State ---
+        const TOTAL_MATCHES = 3;
+        const INITIAL_TIME_SECONDS = 2 * 60; 
+        const MAX_ORANGE_BALLS = 8;
+        const MAX_PURPLE_BALLS = 2;
+
+        let currentMatchNumber = 1;
+        let timeLeft = INITIAL_TIME_SECONDS;
+        let timerInterval = null;
+        let timerRunning = false;
+        
+        let confirmedTeamA = "";
+        let confirmedTeamB = "";
+        let matchesData = [];
+
+        // --- Page Navigation & Display Control ---
+        function showPage(pageElement) {
+            [universalTeamSelectionPage, matchPlayPage, scoreInputPage, resultsPage].forEach(p => {
+                if (p) p.classList.add('hidden');
+            });
+            if (pageElement) {
+                pageElement.classList.remove('hidden');
+            }
+        }
+
+        function populateSelectWithOptions(selectElement, max, includeDefault = true, optionsArray = null) {
+            if (!selectElement) return; // Guard against null element
+            selectElement.innerHTML = ''; 
+            if (includeDefault) {
+                const defaultOption = new Option("選択", ""); 
+                selectElement.add(defaultOption);
+            }
+            if (optionsArray) {
+                optionsArray.forEach(opt => {
+                    if (typeof opt === 'object') { 
+                        selectElement.add(new Option(opt.text, opt.value));
+                    } else { 
+                        selectElement.add(new Option(opt, opt));
+                    }
+                });
+            } else {
+                for (let i = 0; i <= max; i++) {
+                    selectElement.add(new Option(i, i));
+                }
+            }
+        }
+        
+        function initializeScoreSelects() {
+            populateSelectWithOptions(teamAOrangeBallsSelect, MAX_ORANGE_BALLS, true);
+            populateSelectWithOptions(teamBOrangeBallsSelect, MAX_ORANGE_BALLS, true);
+            populateSelectWithOptions(teamAPurpleBallsSelect, MAX_PURPLE_BALLS, true);
+            populateSelectWithOptions(teamBPurpleBallsSelect, MAX_PURPLE_BALLS, true);
+        }
+        
+        function initializeEndReasonSelects() {
+            populateSelectWithOptions(endReasonSelect, 0, true, ["違反1", "違反2", "違反3", "違反4", "コールド"]);
+            if (endedByTeamSelect) endedByTeamSelect.value = "";
+            if (endReasonSelect) endReasonSelect.value = "";
+        }
+
+
+        // --- Initialization and Resets ---
+        function initializeTeamSelection() {
+            const teamSelectionHTML = `
+                <div class="team-selection-container">
+                    <h2 class="section-title">対戦チーム選択</h2>
+                    <div class="team-select-group">
+                        <label for="teamASelectInternal">チームA:</label>
+                        <select id="teamASelectInternal"> <option value="">チームを選択</option>
+                        </select>
+                        <span class="mx-2 font-bold">vs</span>
+                        <label for="teamBSelectInternal">チームB:</label>
+                        <select id="teamBSelectInternal"> <option value="">チームを選択</option>
+                        </select>
+                    </div>
+                    <div id="selectedTeamsDisplayInternal">チームを選択してください</div>
+                    <button id="confirmTeamsButtonInternal" class="btn btn-primary mt-4" disabled>チーム決定して第1マッチへ</button>
+                </div>`;
+            if (universalTeamSelectionPage) universalTeamSelectionPage.innerHTML = teamSelectionHTML; 
+
+            teamASelect = document.getElementById('teamASelectInternal');
+            teamBSelect = document.getElementById('teamBSelectInternal');
+            selectedTeamsDisplay = document.getElementById('selectedTeamsDisplayInternal');
+            confirmTeamsButton = document.getElementById('confirmTeamsButtonInternal');
+
+            if (!teamASelect || !teamBSelect || !selectedTeamsDisplay || !confirmTeamsButton) {
+                console.error("Team selection elements not found after HTML injection.");
+                return;
+            }
+
+            teamASelect.innerHTML = '<option value="">チームを選択</option>';
+            teamBSelect.innerHTML = '<option value="">チームを選択</option>';
+            for (let i = 1; i <= 20; i++) {
+                const teamName = `チーム${i}`;
+                teamASelect.add(new Option(teamName, teamName));
+                teamBSelect.add(new Option(teamName, teamName));
+            }
+            selectedTeamsDisplay.textContent = "チームを選択してください";
+            confirmTeamsButton.disabled = true;
+            teamASelect.disabled = false;
+            teamBSelect.disabled = false;
+
+             teamASelect.addEventListener('change', handleTeamSelectionChange);
+             teamBSelect.addEventListener('change', handleTeamSelectionChange);
+             confirmTeamsButton.addEventListener('click', () => {
+                confirmedTeamA = teamASelect.value;
+                confirmedTeamB = teamBSelect.value;
+                teamASelect.disabled = true;
+                teamBSelect.disabled = true;
+                confirmTeamsButton.disabled = true; 
+                
+                if(scoreTeamAName) scoreTeamAName.textContent = confirmedTeamA;
+                if(scoreTeamBName) scoreTeamBName.textContent = confirmedTeamB;
+                if(resultsHeaderTeamA) resultsHeaderTeamA.textContent = confirmedTeamA;
+                if(resultsHeaderTeamB) resultsHeaderTeamB.textContent = confirmedTeamB;
+
+                setupNewMatch(1);
+            });
+        }
+        
+        function resetMatchSpecificUIData() {
+            timeLeft = INITIAL_TIME_SECONDS;
+            timerRunning = false;
+            if (timerInterval) clearInterval(timerInterval);
+            if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+            if(timerDisplay) timerDisplay.style.color = '#1d4ed8';
+            
+            if(timerControlsPreStart) timerControlsPreStart.classList.remove('hidden');
+            if(timerControlsActive) timerControlsActive.classList.add('hidden');
+            if(startButton) startButton.disabled = false; 
+            if(startButtonActive) startButtonActive.disabled = true; 
+            if(pauseButton) pauseButton.disabled = true;
+            if(endMatchButton) endMatchButton.disabled = false; 
+            
+            if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden'); 
+            if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden'); 
+            initializeEndReasonSelects(); 
+            if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "記録待機中...";
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+
+            [teamAOrangeBallsSelect, teamBOrangeBallsSelect, teamAPurpleBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
+                if (sel) {
+                    sel.value = "-1"; 
+                    sel.disabled = true;
+                }
+            });
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
+        }
+
+        function setupNewMatch(matchNum) {
+            currentMatchNumber = matchNum;
+            if(currentMatchDisplay) currentMatchDisplay.textContent = `第${currentMatchNumber}マッチ`;
+            if(currentMatchScoreTitle) currentMatchScoreTitle.textContent = `第${currentMatchNumber}マッチ 得点入力`;
+            resetMatchSpecificUIData();
+            showPage(matchPlayPage);
+        }
+
+        function fullApplicationReset() {
+            currentMatchNumber = 1;
+            matchesData = [];
+            confirmedTeamA = "";
+            confirmedTeamB = "";
+            
+            initializeTeamSelection(); 
+            resetMatchSpecificUIData(); 
+            initializeScoreSelects(); 
+            initializeEndReasonSelects();
+
+            showPage(universalTeamSelectionPage);
+        }
+
+        // --- Team Selection Logic ---
+        function handleTeamSelectionChange() {
+            if (!teamASelect || !teamBSelect || !selectedTeamsDisplay || !confirmTeamsButton) return;
+            const teamAVal = teamASelect.value;
+            const teamBVal = teamBSelect.value;
+
+            if (teamAVal && teamBVal) {
+                if (teamAVal === teamBVal) {
+                    selectedTeamsDisplay.textContent = "異なるチームを選択してください";
+                    selectedTeamsDisplay.style.color = "red";
+                    confirmTeamsButton.disabled = true;
+                } else {
+                    selectedTeamsDisplay.textContent = `${teamAVal} vs ${teamBVal}`;
+                    selectedTeamsDisplay.style.color = "#1e40af";
+                    confirmTeamsButton.disabled = false;
+                }
+            } else {
+                selectedTeamsDisplay.textContent = "両方のチームを選択してください";
+                selectedTeamsDisplay.style.color = "orange";
+                confirmTeamsButton.disabled = true;
+            }
+        }
+
+        // --- Timer Logic ---
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (timerRunning || timeLeft === 0) return;
+            timerRunning = true;
+            
+            if(timerControlsPreStart) timerControlsPreStart.classList.add('hidden');
+            if(timerControlsActive) timerControlsActive.classList.remove('hidden');
+            if(startButtonActive) startButtonActive.disabled = true; 
+            if(pauseButton) pauseButton.disabled = false;
+            if(endMatchButton) endMatchButton.disabled = false; 
+
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "試合中...";
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+            if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden'); 
+            if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden'); 
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    timeLeft = 0;
+                    if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+                    if(timerDisplay) timerDisplay.style.color = '#dc2626';
+                    handleMatchEnd(true); 
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!timerRunning) return;
+            clearInterval(timerInterval);
+            timerRunning = false;
+            if(startButtonActive) startButtonActive.disabled = false; 
+            if(pauseButton) pauseButton.disabled = true;
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "一時停止中";
+        }
+
+        if(resetMatchTimerButton) resetMatchTimerButton.addEventListener('click', () => {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = INITIAL_TIME_SECONDS;
+            timerRunning = false;
+            if(timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+            if(timerDisplay) timerDisplay.style.color = '#1d4ed8';
+            
+            if (timerControlsActive && !timerControlsActive.classList.contains('hidden')) {
+                if(startButtonActive) startButtonActive.disabled = false;
+                if(pauseButton) pauseButton.disabled = true;
+            } else { 
+                if(timerControlsPreStart) timerControlsPreStart.classList.remove('hidden');
+                if(timerControlsActive) timerControlsActive.classList.add('hidden');
+                if(startButton) startButton.disabled = false;
+            }
+            if(endMatchButton) endMatchButton.disabled = false;
+            
+            if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden');
+            if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden');
+            initializeEndReasonSelects();
+            if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "記録待機中...";
+            if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+        });
+
+        if(endMatchButton) endMatchButton.addEventListener('click', () => { 
+            if (timerInterval) clearInterval(timerInterval);
+            timerRunning = false;
+            if(timerDisplay) timerDisplay.style.color = '#f59e0b'; 
+            handleMatchEnd(false); 
+        });
+        
+        function handleMatchEnd(isTimeout) {
+            if(timerControlsPreStart) timerControlsPreStart.classList.add('hidden'); 
+            if(timerControlsActive) timerControlsActive.classList.remove('hidden'); 
+            if(startButtonActive) startButtonActive.disabled = true; 
+            if(pauseButton) pauseButton.disabled = true;
+            if(endMatchButton) endMatchButton.disabled = true; 
+            if(resetMatchTimerButton) resetMatchTimerButton.disabled = true; 
+
+            if (isTimeout) {
+                if(manualEndReasonContainer) manualEndReasonContainer.classList.add('hidden'); 
+                if(timeoutInfoContainer) timeoutInfoContainer.classList.remove('hidden'); 
+                if(timeoutMessageDisplay) timeoutMessageDisplay.textContent = "試合終了"; 
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "時間切れ！";
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.add('recorded');
+
+                if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+                matchesData[currentMatchNumber - 1].status = "試合終了 (時間切れ)";
+            } else {
+                if(manualEndReasonContainer) manualEndReasonContainer.classList.remove('hidden');
+                if(timeoutInfoContainer) timeoutInfoContainer.classList.add('hidden');
+                populateSelectWithOptions(endedByTeamSelect, 0, true, [
+                    {text: confirmedTeamA, value: confirmedTeamA},
+                    {text: confirmedTeamB, value: confirmedTeamB}
+                ]);
+                initializeEndReasonSelects(); 
+                if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.textContent = "試合手動終了。終了理由を選択してください。";
+                if(recordDisplayOnTimerPage) recordDisplayOnTimerPage.classList.remove('recorded');
+            }
+        }
+        
+        if(timeoutProceedToScoreButton) timeoutProceedToScoreButton.addEventListener('click', () => {
+            const statusText = "試合終了 (時間切れ)"; 
+            const fullStatusMessage = `記録 (マッチ${currentMatchNumber}): 「${statusText}」`;
+            
+            if(selectedStatusOnScorePage) selectedStatusOnScorePage.textContent = fullStatusMessage;
+            [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
+                if(sel) {
+                    sel.disabled = false;
+                    sel.value = "-1"; 
+                }
+            });
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.textContent = (currentMatchNumber < TOTAL_MATCHES) ? `第${currentMatchNumber + 1}マッチに進む` : "試合結果へ";
+            showPage(scoreInputPage);
+        });
+
+        if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.addEventListener('click', () => {
+            const team = endedByTeamSelect.value;
+            const reason = endReasonSelect.value;
+            const statusText = `${team} - ${reason}`;
+            const fullStatusMessage = `記録 (マッチ${currentMatchNumber}): 「${statusText}」`;
+
+            if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+            matchesData[currentMatchNumber - 1].status = statusText;
+
+            if(selectedStatusOnScorePage) selectedStatusOnScorePage.textContent = fullStatusMessage;
+            [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
+                if(sel) {
+                    sel.disabled = false;
+                    sel.value = "-1"; 
+                }
+            });
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true; 
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.textContent = (currentMatchNumber < TOTAL_MATCHES) ? `第${currentMatchNumber + 1}マッチに進む` : "試合結果へ";
+            
+            showPage(scoreInputPage);
+        });
+
+        function checkManualEndReasonSelection() {
+            if (endedByTeamSelect && endReasonSelect && endedByTeamSelect.value && endReasonSelect.value) {
+                if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = false;
+            } else {
+                if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.disabled = true;
+            }
+        }
+        if(endedByTeamSelect) endedByTeamSelect.addEventListener('change', checkManualEndReasonSelection);
+        if(endReasonSelect) endReasonSelect.addEventListener('change', checkManualEndReasonSelection);
+        
+        if(backToMatchTimerButton) backToMatchTimerButton.addEventListener('click', () => {
+            showPage(matchPlayPage);
+            if (manualEndReasonContainer && timerControlsActive && !timerRunning && !manualEndReasonContainer.classList.contains('hidden')) {
+                timerControlsActive.classList.remove('hidden');
+                if(startButtonActive) startButtonActive.disabled = true;
+                if(pauseButton) pauseButton.disabled = true;
+                if(endMatchButton) endMatchButton.disabled = false; 
+                if(resetMatchTimerButton) resetMatchTimerButton.disabled = false;
+            } else if (timeoutInfoContainer && timerControlsActive && !timerRunning && !timeoutInfoContainer.classList.contains('hidden')) {
+                 timerControlsActive.classList.remove('hidden');
+                 if(startButtonActive) startButtonActive.disabled = true;
+                 if(pauseButton) pauseButton.disabled = true;
+                 if(endMatchButton) endMatchButton.disabled = true;
+                 if(resetMatchTimerButton) resetMatchTimerButton.disabled = true;
+            }
+        });
+
+
+        // --- Score Input Logic (Selects) ---
+        function handleScoreSelectChange(sourceSelect, targetSelect, maxTotal) {
+            if (!sourceSelect || !targetSelect) return;
+            const sourceValue = parseInt(sourceSelect.value);
+            if (sourceValue >= 0 && sourceValue <= maxTotal) { 
+                targetSelect.value = maxTotal - sourceValue;
+            } else { 
+                targetSelect.value = "-1"; 
+            }
+            checkIfScoresAreComplete();
+        }
+
+        function checkIfScoresAreComplete() {
+            const scores = [
+                teamAOrangeBallsSelect?.value, teamAPurpleBallsSelect?.value,
+                teamBOrangeBallsSelect?.value, teamBPurpleBallsSelect?.value
+            ];
+            const allSelected = scores.every(val => val && parseInt(val) !== -1 && val !== "");
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = !allSelected;
+
+            if(allSelected) {
+                if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
+                 matchesData[currentMatchNumber - 1].teamA_Orange = parseInt(teamAOrangeBallsSelect.value);
+                 matchesData[currentMatchNumber - 1].teamA_Purple = parseInt(teamAPurpleBallsSelect.value);
+                 matchesData[currentMatchNumber - 1].teamB_Orange = parseInt(teamBOrangeBallsSelect.value);
+                 matchesData[currentMatchNumber - 1].teamB_Purple = parseInt(teamBPurpleBallsSelect.value);
+            }
+        }
+
+        if(teamAOrangeBallsSelect) teamAOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAOrangeBallsSelect, teamBOrangeBallsSelect, MAX_ORANGE_BALLS));
+        if(teamBOrangeBallsSelect) teamBOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBOrangeBallsSelect, teamAOrangeBallsSelect, MAX_ORANGE_BALLS));
+        if(teamAPurpleBallsSelect) teamAPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAPurpleBallsSelect, teamBPurpleBallsSelect, MAX_PURPLE_BALLS));
+        if(teamBPurpleBallsSelect) teamBPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBPurpleBallsSelect, teamAPurpleBallsSelect, MAX_PURPLE_BALLS));
+
+        if(proceedToNextPhaseButton) proceedToNextPhaseButton.addEventListener('click', () => {
+            if (currentMatchNumber < TOTAL_MATCHES) {
+                setupNewMatch(currentMatchNumber + 1);
+            } else {
+                displayResults();
+            }
+        });
+
+        // --- Results Page Logic ---
+        function displayResults() {
+            if(resultsTeamsDisplay) resultsTeamsDisplay.textContent = `${confirmedTeamA} vs ${confirmedTeamB}`;
+            if(resultsTableBody) resultsTableBody.innerHTML = ''; 
+
+            for (let i = 0; i < TOTAL_MATCHES; i++) {
+                const match = matchesData[i] || {}; 
+                if(!resultsTableBody) continue;
+                const row = resultsTableBody.insertRow();
+                
+                const cellMatchNum = row.insertCell();
+                cellMatchNum.textContent = `第${i + 1}マッチ`;
+                const cellStatus = row.insertCell();
+                cellStatus.textContent = match.status || "未記録";
+
+                const teamAOrange = match.teamA_Orange !== undefined ? match.teamA_Orange : null;
+                const teamAPurple = match.teamA_Purple !== undefined ? match.teamA_Purple : null;
+                let teamAScore = null;
+                if (teamAOrange !== null && teamAPurple !== null) {
+                    teamAScore = teamAOrange - (teamAPurple * 2);
+                }
+
+                const teamBOrange = match.teamB_Orange !== undefined ? match.teamB_Orange : null;
+                const teamBPurple = match.teamB_Purple !== undefined ? match.teamB_Purple : null;
+                let teamBScore = null;
+                if (teamBOrange !== null && teamBPurple !== null) {
+                    teamBScore = teamBOrange - (teamBPurple * 2);
+                }
+
+                const cellTeamAOrange = row.insertCell();
+                cellTeamAOrange.textContent = teamAOrange !== null ? teamAOrange : "-";
+                const cellTeamAPurple = row.insertCell();
+                cellTeamAPurple.textContent = teamAPurple !== null ? teamAPurple : "-";
+                const cellTeamAScore = row.insertCell();
+                cellTeamAScore.textContent = teamAScore !== null ? teamAScore : "-";
+
+                const cellTeamBOrange = row.insertCell();
+                cellTeamBOrange.textContent = teamBOrange !== null ? teamBOrange : "-";
+                const cellTeamBPurple = row.insertCell();
+                cellTeamBPurple.textContent = teamBPurple !== null ? teamBPurple : "-";
+                const cellTeamBScore = row.insertCell();
+                cellTeamBScore.textContent = teamBScore !== null ? teamBScore : "-";
+
+                if (teamAScore !== null && teamBScore !== null) {
+                    if (teamAScore < teamBScore) {
+                        cellTeamAOrange.classList.add('highlight-loser-cell');
+                        cellTeamAPurple.classList.add('highlight-loser-cell');
+                        cellTeamAScore.classList.add('highlight-loser-cell');
+                    } else if (teamBScore < teamAScore) {
+                        cellTeamBOrange.classList.add('highlight-loser-cell');
+                        cellTeamBPurple.classList.add('highlight-loser-cell');
+                        cellTeamBScore.classList.add('highlight-loser-cell');
+                    }
+                }
+            }
+            showPage(resultsPage);
+        }
+        
+        if(startNewGameButton) startNewGameButton.addEventListener('click', fullApplicationReset);
+        if(fullResetButton) fullResetButton.addEventListener('click', fullApplicationReset);
+
+        // --- Initial Setup ---
+        function injectMissingHTML() {
+            // Ensure universalTeamSelectionPage has content
+            if (universalTeamSelectionPage && universalTeamSelectionPage.children.length === 0) {
+                 const teamSelectionHTML = `
+                    <div class="team-selection-container">
+                        <h2 class="section-title">対戦チーム選択</h2>
+                        <div class="team-select-group">
+                            <label for="teamASelectInternal">チームA:</label>
+                            <select id="teamASelectInternal"><option value="">チームを選択</option></select>
+                            <span class="mx-2 font-bold">vs</span>
+                            <label for="teamBSelectInternal">チームB:</label>
+                            <select id="teamBSelectInternal"><option value="">チームを選択</option></select>
+                        </div>
+                        <div id="selectedTeamsDisplayInternal">チームを選択してください</div>
+                        <button id="confirmTeamsButtonInternal" class="btn btn-primary mt-4" disabled>チーム決定して第1マッチへ</button>
+                    </div>`;
+                universalTeamSelectionPage.innerHTML = teamSelectionHTML;
+            }
+            // Ensure scoreInputPage has content
+            if (scoreInputPage && scoreInputPage.children.length === 0) {
+                const scoreInputHTML = `
+                    <div class="score-input-page-container">
+                        <div id="currentMatchScoreTitleInternal" class="match-title-display">第Xマッチ 得点入力</div>
+                        <div id="selectedStatusOnScorePageInternal" class="record-display">状態記録がここに表示されます</div>
+                        <h2 class="section-title">得点入力</h2>
+                        <div class="score-input-area">
+                            <div class="score-team-section">
+                                <h3 id="scoreTeamANameInternal">チームA</h3>
+                                <div class="score-input-group">
+                                    <label for="teamAOrangeBallsSelectInternal">オレンジボール (0-8):</label>
+                                    <select id="teamAOrangeBallsSelectInternal" disabled></select>
+                                </div>
+                                <div class="score-input-group">
+                                    <label for="teamAPurpleBallsSelectInternal">紫ボール (0-2):</label>
+                                    <select id="teamAPurpleBallsSelectInternal" disabled></select>
+                                </div>
+                            </div>
+                            <div class="score-team-section">
+                                <h3 id="scoreTeamBNameInternal">チームB</h3>
+                                <div class="score-input-group">
+                                    <label for="teamBOrangeBallsSelectInternal">オレンジボール (0-8):</label>
+                                    <select id="teamBOrangeBallsSelectInternal" disabled></select>
+                                </div>
+                                <div class="score-input-group">
+                                    <label for="teamBPurpleBallsSelectInternal">紫ボール (0-2):</label>
+                                    <select id="teamBPurpleBallsSelectInternal" disabled></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="next-match-btn-container">
+                            <button id="proceedToNextPhaseButtonInternal" class="btn btn-primary" disabled>次へ</button>
+                        </div>
+                        <button id="backToMatchTimerButtonInternal" class="btn btn-secondary mt-3">このマッチのタイマー画面に戻る</button>
+                    </div>`;
+                scoreInputPage.innerHTML = scoreInputHTML;
+            }
+            // Ensure resultsPage has content
+             if (resultsPage && resultsPage.children.length === 0) {
+                const resultsHTML = `
+                    <div class="results-page-container">
+                        <h2 class="section-title match-title-display">試合結果</h2>
+                        <div id="resultsTeamsDisplayInternal" class="results-teams-display">チームA vs チームB</div>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">マッチ</th> <th rowspan="2">状態</th>
+                                    <th colspan="3" id="resultsHeaderTeamAInternal">チームA</th>
+                                    <th colspan="3" id="resultsHeaderTeamBInternal">チームB</th>
+                                </tr>
+                                <tr>
+                                    <th>オレンジ</th><th>紫</th><th>得点</th>
+                                    <th>オレンジ</th><th>紫</th><th>得点</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBodyInternal"></tbody>
+                        </table>
+                        <button id="startNewGameButtonInternal" class="btn btn-success mt-4">新しい試合を開始</button>
+                    </div>`;
+                resultsPage.innerHTML = resultsHTML;
+            }
+        }
+
+        function reassignDynamicPageElements() {
+            // For universalTeamSelectionPage (already handled in initializeTeamSelection)
+
+            // For scoreInputPage
+            currentMatchScoreTitle = document.getElementById('currentMatchScoreTitleInternal') || document.getElementById('currentMatchScoreTitle');
+            selectedStatusOnScorePage = document.getElementById('selectedStatusOnScorePageInternal') || document.getElementById('selectedStatusOnScorePage');
+            scoreTeamAName = document.getElementById('scoreTeamANameInternal') || document.getElementById('scoreTeamAName');
+            teamAOrangeBallsSelect = document.getElementById('teamAOrangeBallsSelectInternal') || document.getElementById('teamAOrangeBallsSelect');
+            teamAPurpleBallsSelect = document.getElementById('teamAPurpleBallsSelectInternal') || document.getElementById('teamAPurpleBallsSelect');
+            scoreTeamBName = document.getElementById('scoreTeamBNameInternal') || document.getElementById('scoreTeamBName');
+            teamBOrangeBallsSelect = document.getElementById('teamBOrangeBallsSelectInternal') || document.getElementById('teamBOrangeBallsSelect');
+            teamBPurpleBallsSelect = document.getElementById('teamBPurpleBallsSelectInternal') || document.getElementById('teamBPurpleBallsSelect');
+            proceedToNextPhaseButton = document.getElementById('proceedToNextPhaseButtonInternal') || document.getElementById('proceedToNextPhaseButton');
+            backToMatchTimerButton = document.getElementById('backToMatchTimerButtonInternal') || document.getElementById('backToMatchTimerButton');
+             if(backToMatchTimerButton) backToMatchTimerButton.addEventListener('click', () => { // Add listener if element exists
+                showPage(matchPlayPage);
+                 if (manualEndReasonContainer && timerControlsActive && !timerRunning && !manualEndReasonContainer.classList.contains('hidden')) {
+                    timerControlsActive.classList.remove('hidden');
+                    if(startButtonActive) startButtonActive.disabled = true;
+                    if(pauseButton) pauseButton.disabled = true;
+                    if(endMatchButton) endMatchButton.disabled = false; 
+                    if(resetMatchTimerButton) resetMatchTimerButton.disabled = false;
+                } else if (timeoutInfoContainer && timerControlsActive && !timerRunning && !timeoutInfoContainer.classList.contains('hidden')) {
+                    timerControlsActive.classList.remove('hidden');
+                    if(startButtonActive) startButtonActive.disabled = true;
+                    if(pauseButton) pauseButton.disabled = true;
+                    if(endMatchButton) endMatchButton.disabled = true;
+                    if(resetMatchTimerButton) resetMatchTimerButton.disabled = true;
+                }
+            });
+            if(teamAOrangeBallsSelect) teamAOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAOrangeBallsSelect, teamBOrangeBallsSelect, MAX_ORANGE_BALLS));
+            if(teamBOrangeBallsSelect) teamBOrangeBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBOrangeBallsSelect, teamAOrangeBallsSelect, MAX_ORANGE_BALLS));
+            if(teamAPurpleBallsSelect) teamAPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamAPurpleBallsSelect, teamBPurpleBallsSelect, MAX_PURPLE_BALLS));
+            if(teamBPurpleBallsSelect) teamBPurpleBallsSelect.addEventListener('change', () => handleScoreSelectChange(teamBPurpleBallsSelect, teamAPurpleBallsSelect, MAX_PURPLE_BALLS));
+            if(proceedToNextPhaseButton) proceedToNextPhaseButton.addEventListener('click', () => {
+                if (currentMatchNumber < TOTAL_MATCHES) {
+                    setupNewMatch(currentMatchNumber + 1);
+                } else {
+                    displayResults();
+                }
+            });
+
+
+            // For resultsPage
+            resultsTeamsDisplay = document.getElementById('resultsTeamsDisplayInternal') || document.getElementById('resultsTeamsDisplay');
+            resultsHeaderTeamA = document.getElementById('resultsHeaderTeamAInternal') || document.getElementById('resultsHeaderTeamA');
+            resultsHeaderTeamB = document.getElementById('resultsHeaderTeamBInternal') || document.getElementById('resultsHeaderTeamB');
+            resultsTableBody = document.getElementById('resultsTableBodyInternal') || document.getElementById('resultsTableBody');
+            startNewGameButton = document.getElementById('startNewGameButtonInternal') || document.getElementById('startNewGameButton');
+            if(startNewGameButton) startNewGameButton.addEventListener('click', fullApplicationReset);
+        }
+
+
+        window.onload = () => {
+            injectMissingHTML(); 
+            reassignDynamicPageElements(); // Re-assign potentially dynamic elements and their listeners
+
+            // Global static button listeners
+            if(startButton) startButton.addEventListener('click', startTimer);
+            if(startButtonActive) startButtonActive.addEventListener('click', startTimer); 
+            if(pauseButton) pauseButton.addEventListener('click', pauseTimer);
+            if(fullResetButton) fullResetButton.addEventListener('click', fullApplicationReset);
+            
+            fullApplicationReset(); 
+        };
+    </script>
+</body>
+</html>

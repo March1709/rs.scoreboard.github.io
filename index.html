@@ -156,8 +156,11 @@
 
         /* --- ボール数入力ページ --- */
         #selectedStatusOnScorePage { 
-            font-size: 1.1rem; font-weight: bold; color: #065f46;
-            background-color: #d1fae5; padding: 10px 15px;
+            font-size: 1.1rem; 
+            font-weight: 500; 
+            color: #1f2937; 
+            background-color: #f3f4f6; 
+            padding: 10px 15px;
             border-radius: 8px; margin-bottom: 20px;
         }
         .score-input-area { 
@@ -333,7 +336,7 @@
             <div class="intermediate-result-page-container">
                 <h2 id="intermediateResultTitle" class="section-title match-title-display">第Xマッチ 結果</h2>
                 <div id="intermediateMatchTeams" class="results-teams-display">チームA vs チームB</div>
-                <div id="intermediateMatchStatusDisplay" class="record-display my-3">状態: 未記録</div>
+                <div id="intermediateMatchStatusDisplay" class="record-display my-3">リザルト: 未記録</div> 
                 <table id="intermediateMatchResultTable" class="results-table">
                     <thead>
                         <tr>
@@ -360,7 +363,7 @@
                     <thead>
                         <tr>
                             <th rowspan="2">マッチ</th>
-                            <th rowspan="2">状態</th>
+                            <th rowspan="2">リザルト</th> 
                             <th colspan="3" id="resultsHeaderTeamA">チームA</th> 
                             <th colspan="3" id="resultsHeaderTeamB">チームB</th> 
                         </tr>
@@ -499,7 +502,7 @@
 
         // --- Audio Setup (Tone.js) ---
         let synth = null;
-        const BEEP_VOLUME = 0; // 音量を0dBに設定（以前より大きく）
+        const BEEP_VOLUME = 0; 
 
         function initializeAudio() {
             if (!synth && typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
@@ -761,7 +764,7 @@
 
         function startTimer() {
             if (timerRunning || timeLeft === 0) return;
-            playLongBeep(); // 開始時は長いビープ音
+            playLongBeep(); 
             timerRunning = true;
             
             if(timerControlsPreStart) timerControlsPreStart.classList.add('hidden');
@@ -902,9 +905,11 @@
             }
         }
         
-        function setupScorePageUI(statusText) { 
-            if(selectedStatusOnScorePage) selectedStatusOnScorePage.textContent = statusText.replace("記録(マッチ", "リザルト (マッチ"); 
+        function setupScorePageUI() { 
             const currentMatchRecord = matchesData[currentMatchNumber - 1] || {};
+            if(selectedStatusOnScorePage) {
+                 selectedStatusOnScorePage.textContent = `リザルト: ${currentMatchRecord.status || "未記録"}`;
+            }
             const scoreInputTitleElement = document.querySelector('#scoreInputPage .section-title'); 
             if(scoreInputTitleElement) scoreInputTitleElement.classList.add('hidden'); 
 
@@ -954,13 +959,11 @@
         }
 
         if(timeoutProceedToScoreButton) timeoutProceedToScoreButton.addEventListener('click', () => {
-            const statusText = "タイムアップ"; 
-            const fullStatusMessage = `リザルト (マッチ${currentMatchNumber}): 「${statusText}」`;
             if (!matchesData[currentMatchNumber - 1]) matchesData[currentMatchNumber - 1] = {};
-            matchesData[currentMatchNumber - 1].status = statusText; 
+            // status is already set to "タイムアップ" in handleMatchEnd
             matchesData[currentMatchNumber - 1].isColdGame = false; 
             matchesData[currentMatchNumber - 1].isPenaltyFixedScore = false;
-            setupScorePageUI(fullStatusMessage); 
+            setupScorePageUI(); 
         });
 
         if(manualEndProceedToScoreButton) manualEndProceedToScoreButton.addEventListener('click', () => {
@@ -968,7 +971,6 @@
             const teamText = endedByTeamSelect.options[endedByTeamSelect.selectedIndex].text; 
             const reason = endReasonSelect.value;
             const statusText = `${teamText} - ${reason}`; 
-            const fullStatusMessage = `リザルト (マッチ${currentMatchNumber}): 「${statusText}」`;
             
             const isCold = (reason === "コールド");
             const isPenalty = PENALTY_FIXED_SCORE_REASONS.includes(reason);
@@ -979,7 +981,7 @@
             matchesData[currentMatchNumber - 1].isPenaltyFixedScore = isPenalty;
             matchesData[currentMatchNumber - 1].penaltyLosingTeam = (isCold || isPenalty) ? teamValue : ""; 
 
-            setupScorePageUI(fullStatusMessage); 
+            setupScorePageUI(); 
         });
 
         function checkManualEndReasonSelection() {
@@ -1086,7 +1088,7 @@
 
             if(intermediateResultTitle) intermediateResultTitle.textContent = `第${matchIndex + 1}マッチ 結果`;
             if(intermediateMatchTeams) intermediateMatchTeams.textContent = `${confirmedTeamADisplay} vs ${confirmedTeamBDisplay}`;
-            if(intermediateMatchStatusDisplay) intermediateMatchStatusDisplay.textContent = `状態: ${match.status || "未記録"}`;
+            if(intermediateMatchStatusDisplay) intermediateMatchStatusDisplay.textContent = `リザルト: ${match.status || "未記録"}`; 
             
             if(intermediateMatchResultTableBody) intermediateMatchResultTableBody.innerHTML = ''; 
 
@@ -1482,7 +1484,7 @@
                     <div class="intermediate-result-page-container">
                         <h2 id="intermediateResultTitleInternal" class="section-title match-title-display">第Xマッチ 結果</h2>
                         <div id="intermediateMatchTeamsInternal" class="results-teams-display">チームA vs チームB</div>
-                        <div id="intermediateMatchStatusDisplayInternal" class="record-display my-3">状態: 未記録</div>
+                        <div id="intermediateMatchStatusDisplayInternal" class="record-display my-3">リザルト: 未記録</div>
                         <table id="intermediateMatchResultTableInternal" class="results-table">
                             <thead>
                                 <tr>
@@ -1508,7 +1510,7 @@
                         <table class="results-table">
                             <thead>
                                 <tr>
-                                    <th rowspan="2">マッチ</th> <th rowspan="2">状態</th>
+                                    <th rowspan="2">マッチ</th> <th rowspan="2">リザルト</th>
                                     <th colspan="3" id="resultsHeaderTeamAInternal">チームA</th>
                                     <th colspan="3" id="resultsHeaderTeamBInternal">チームB</th>
                                 </tr>

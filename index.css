@@ -1,4 +1,4 @@
-/* --- 全体スタイル --- */
+ /* --- 全体スタイル --- */
         body {
             font-family: 'Inter', sans-serif; /* フォント指定 */
             display: flex; /* Flexboxレイアウト */
@@ -147,8 +147,11 @@
 
         /* --- ボール数入力ページ --- */
         #selectedStatusOnScorePage { 
-            font-size: 1.1rem; font-weight: bold; color: #065f46;
-            background-color: #d1fae5; padding: 10px 15px;
+            font-size: 1.1rem; 
+            font-weight: 500; 
+            color: #1f2937; 
+            background-color: #f3f4f6; 
+            padding: 10px 15px;
             border-radius: 8px; margin-bottom: 20px;
         }
         .score-input-area { 

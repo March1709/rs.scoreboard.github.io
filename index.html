@@ -498,8 +498,7 @@
             "選手のロボット接触(6.33)",
             "選手のフィールド接触(6.32.5)"
         ];
-        // FOUL_COUNTING_REASONS は、PENALTY_FIXED_SCORE_REASONS と同じリストを参照します。
-        // これらは「違反」として総計表でカウントされる理由です。
+        // FOUL_COUNTING_REASONS は、特定のペナルティ理由が「違反」としてカウントされることを定義します。
         const FOUL_COUNTING_REASONS = [...PENALTY_FIXED_SCORE_REASONS];
 
         // --- Audio Setup (Tone.js) ---
@@ -1478,7 +1477,7 @@
                         <div class="next-match-btn-container">
                             <button id="proceedToNextPhaseButtonInternal" class="btn btn-primary" disabled>確定</button>
                         </div>
-                        <button id="backToMatchTimerButtonInternal" class="btn btn-secondary mt-3">このマッチのタイマー画面に戻る</button>
+                        <button id="backToMatchTimerButtonInternal" class="btn btn-secondary mt-3">リザルト変更</button>
                     </div>`;
                 scoreInputPage.innerHTML = scoreInputHTML;
             }

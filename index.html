@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoboSports審判支援ツール</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon"> <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         /* --- 全体スタイル --- */
@@ -1194,7 +1195,6 @@
                 const cellStatus = row.insertCell();
                 cellStatus.textContent = match.status || "未記録";
 
-                // 違反回数の集計: match.isPenaltyFixedScore フラグと match.penaltyLosingTeam を使用
                 if (match.isPenaltyFixedScore === true) { 
                     if (match.penaltyLosingTeam === confirmedTeamA) {
                         gameTotalFoulsTeamA++;
@@ -1240,7 +1240,6 @@
                     }
                 }
                 
-                // match.winner should already be set by displayIntermediateResult
                 if (match.winner === confirmedTeamA) { gameTotalWinsTeamA++; }
                 else if (match.winner === confirmedTeamB) { gameTotalWinsTeamB++; }
 
@@ -1270,25 +1269,34 @@
 
             let overallWinner = null;
             let overallDraw = false;
+            let winReasonText = "";
+
 
             if (gameTotalWinsTeamA > gameTotalWinsTeamB) {
                 overallWinner = confirmedTeamADisplay;
+                winReasonText = "[勝利マッチ数]";
             } else if (gameTotalWinsTeamB > gameTotalWinsTeamA) {
                 overallWinner = confirmedTeamBDisplay;
+                winReasonText = "[勝利マッチ数]";
             } else { 
                 if (gameTotalFoulsTeamA < gameTotalFoulsTeamB) {
                     overallWinner = confirmedTeamADisplay;
+                    winReasonText = "[総違反回数]";
                 } else if (gameTotalFoulsTeamB < gameTotalFoulsTeamA) {
                     overallWinner = confirmedTeamBDisplay;
+                    winReasonText = "[総違反回数]";
                 } else { 
                     const overallScoreTeamA = gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2);
                     const overallScoreTeamB = gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2);
                     if (overallScoreTeamA < overallScoreTeamB) { 
                         overallWinner = confirmedTeamADisplay;
+                        winReasonText = "[総ボールスコア]";
                     } else if (overallScoreTeamB < overallScoreTeamA) {
                         overallWinner = confirmedTeamBDisplay;
+                        winReasonText = "[総ボールスコア]";
                     } else { 
                         overallDraw = true;
+                        // winReasonText = "[全条件同数]"; // 引き分け時は理由を別に表示
                     }
                 }
             }
@@ -1351,10 +1359,10 @@
             }
             if(overallWinnerDisplay) {
                 if (overallWinner) {
-                    overallWinnerDisplay.textContent = `総合結果: ${overallWinner} の勝利！`;
+                    overallWinnerDisplay.textContent = `総合結果:${winReasonText} ${overallWinner}の勝利！`; 
                     overallWinnerDisplay.style.color = 'green';
                 } else if (overallDraw) {
-                    overallWinnerDisplay.textContent = "総合結果: 引き分け";
+                    overallWinnerDisplay.textContent = "総合結果:引き分け！"; 
                     overallWinnerDisplay.style.color = 'red';
                 } else {
                     overallWinnerDisplay.textContent = ""; 

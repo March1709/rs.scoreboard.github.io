@@ -498,6 +498,8 @@
             "選手のロボット接触(6.33)",
             "選手のフィールド接触(6.32.5)"
         ];
+        // FOUL_COUNTING_REASONS は、PENALTY_FIXED_SCORE_REASONS と同じリストを参照します。
+        // これらは「違反」として総計表でカウントされる理由です。
         const FOUL_COUNTING_REASONS = [...PENALTY_FIXED_SCORE_REASONS];
 
         // --- Audio Setup (Tone.js) ---
@@ -1193,14 +1195,15 @@
                 const cellStatus = row.insertCell();
                 cellStatus.textContent = match.status || "未記録";
 
-                const reasonPart = match.status ? match.status.split(' - ')[1] : "";
-                if (FOUL_COUNTING_REASONS.includes(reasonPart)) {
-                    if (match.penaltyLosingTeam === confirmedTeamA) { 
+                // 違反回数の集計: match.isPenaltyFixedScore フラグと match.penaltyLosingTeam を使用
+                if (match.isPenaltyFixedScore === true) { 
+                    if (match.penaltyLosingTeam === confirmedTeamA) {
                         gameTotalFoulsTeamA++;
                     } else if (match.penaltyLosingTeam === confirmedTeamB) {
                         gameTotalFoulsTeamB++;
                     }
                 }
+
 
                 let teamAOrange = match.teamA_Orange !== undefined ? match.teamA_Orange : null;
                 let teamAPurple = match.teamA_Purple !== undefined ? match.teamA_Purple : null;

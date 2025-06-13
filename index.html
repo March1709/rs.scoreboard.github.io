@@ -1284,9 +1284,10 @@
             const teamValue = endedByTeamSelect.value; 
             const selectedReasonOption = endReasonSelect.options[endReasonSelect.selectedIndex];
             const reasonValue = selectedReasonOption.value; // 生の理由
-            const reasonText = selectedReasonOption.text;   // 表示されているテキスト
             const teamText = endedByTeamSelect.options[endedByTeamSelect.selectedIndex].text; 
-            const statusText = `${teamText} - ${reasonText}`; 
+            
+            // ★変更点: [違反・自動敗北]プレフィックスを含まない理由(value)を使用し、表示用のステータステキストを生成
+            const statusText = `${teamText} - ${reasonValue}`;
             
             const isCold = (reasonValue === "コールド勝利");
             const isPenalty = PENALTY_FIXED_SCORE_REASONS.includes(reasonValue);

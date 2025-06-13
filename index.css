@@ -1,60 +1,60 @@
 /* --- 全体スタイル --- */
         body {
             font-family: 'Inter', sans-serif; /* フォント指定 */
-            display: flex; /* Flexboxレイアウト */
-            flex-direction: column; /* 縦方向の配置 */
-            align-items: center; /* 中央揃え（左右） */
-            justify-content: flex-start; /* 上寄せ */
-            min-height: 100vh; /* 画面全体の高さ */
-            background-color: #f0f4f8; /* 背景色 */
-            color: #333; /* 基本文字色 */
-            margin: 0; /* 外側余白なし */
-            padding: 20px; /* 内側余白 */
-            box-sizing: border-box; /* paddingとborderをwidth/heightに含める */
+            display: flex; /* Flexboxレイアウトを有効化 */
+            flex-direction: column; /* 要素を縦方向に並べる */
+            align-items: center; /* 水平方向中央揃え */
+            justify-content: flex-start; /* 垂直方向上揃え */
+            min-height: 100vh; /* 画面全体の高さを確保 */
+            background-color: #f0f4f8; /* 背景色を薄いグレーに設定 */
+            color: #333; /* 基本の文字色 */
+            margin: 0; /* body要素のデフォルトマージンを削除 */
+            padding: 20px; /* body要素の内側に余白を設定 */
+            box-sizing: border-box; /* paddingとborderをwidth/heightの計算に含める */
         }
         .container {
-            background-color: #ffffff; /* コンテナ背景色 */
-            padding: 20px; /* コンテナ内側余白 */
-            border-radius: 12px; /* 角丸 */
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 影 */
-            width: 100%; /* 幅を親要素に合わせる */
-            max-width: 700px; /* 最大幅 */
-            text-align: center; /* テキスト中央揃え */
+            background-color: #ffffff; /* コンテンツ全体の背景色を白に設定 */
+            padding: 20px; /* 内側の余白 */
+            border-radius: 12px; /* 角を丸くする */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 影をつけて立体感を出す */
+            width: 100%; /* 親要素いっぱいに幅を広げる */
+            max-width: 700px; /* 最大幅を指定し、大きな画面でも見やすくする */
+            text-align: center; /* テキストを中央揃えにする */
         }
-        .page { width: 100%; } /* 各ページ共通の幅 */
+        .page { width: 100%; } /* 各ページの共通スタイル */
 
         /* --- マッチタイトル表示 --- */
         .match-title-display {
             font-size: 2.25rem; /* 文字サイズ (36px) */
             font-weight: bold; /* 太字 */
             color: #111827; /* 文字色 (濃いグレー) */
-            margin-bottom: 5px; /* 下余白調整 */
+            margin-bottom: 5px; /* 下の余白を少し調整 */
         }
-        #currentMatchTeamsDisplay { /* タイマー画面の対戦チーム表示 */
-            font-size: 1.5rem; /* 文字サイズを大きく変更 (例: 1.1rem -> 1.5rem) */
+        #currentMatchTeamsDisplay { /* タイマー画面の対戦チーム表示用のスタイル */
+            font-size: 1.5rem; /* 文字サイズ */
             font-weight: 600; /* 少し太く */
-            color: #374151; /* gray-700 */
-            margin-bottom: 15px;
+            color: #374151; /* 文字色 (グレー) */
+            margin-bottom: 15px; /* 下の余白 */
         }
 
 
         /* --- チーム選択エリア --- */
         .team-selection-container {
-            margin-bottom: 20px; /* 下余白 */
-            padding-bottom: 20px; /* 下パディング */
-            border-bottom: 1px solid #e5e7eb; /* 下境界線 */
+            margin-bottom: 20px; /* 下の余白 */
+            padding-bottom: 20px; /* 下の内側余白 */
+            border-bottom: 1px solid #e5e7eb; /* 下に境界線 */
         }
         
-        .team-selection-container h2, .section-title { /* セクションタイトル共通 */
+        .team-selection-container h2, .section-title { /* セクションタイトルの共通スタイル */
             font-size: 1.25rem; /* 文字サイズ (20px) */
             font-weight: 600; /* 文字の太さ */
-            margin-bottom: 10px; /* 下余白 */
+            margin-bottom: 10px; /* 下の余白 */
             color: #374151; /* 文字色 (グレー) */
         }
-        .csv-upload-container { /* CSVアップロードエリア */
+        .csv-upload-container { /* CSVアップロードエリアのスタイル */
             margin-bottom: 20px;
         }
-        .csv-upload-container input[type="file"] { /* ファイル選択ボタン */
+        .csv-upload-container input[type="file"] { /* ファイル選択ボタンのスタイル */
             margin-bottom: 10px;
             display: block;
             margin-left: auto;
@@ -63,35 +63,74 @@
         .team-select-group {
             display: flex; /* Flexboxレイアウト */
             justify-content: space-around; /* 要素間のスペースを均等に配置 */
-            align-items: center; /* 中央揃え（上下） */
+            align-items: center; /* 垂直方向中央揃え */
             gap: 10px; /* 要素間の隙間 */
-            margin-bottom: 10px; /* 下余白 */
+            margin-bottom: 10px; /* 下の余白 */
         }
-        .team-select-group label { font-size: 0.9rem; color: #4b5563; } /* ラベルスタイル */
+        .team-select-group label { font-size: 0.9rem; color: #4b5563; } /* ラベルのスタイル */
         .team-select-group select { /* プルダウンメニューのスタイル */
             padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid #d1d5db;
             background-color: #fff;
-            flex-grow: 1; /* 要素の伸び率 */
+            flex-grow: 1; /* 親要素の幅に合わせて伸びる */
         }
-        #selectedTeamsDisplay { /* 選択されたチーム表示エリア */
+        #selectedTeamsDisplay { /* 選択されたチーム表示エリアのスタイル */
             font-size: 1.1rem; font-weight: bold; color: #1e40af;
             margin-top: 10px; min-height: 25px;
         }
 
         /* --- タイマー表示 --- */
         .timer-display {
-            font-size: 7rem; /* 文字サイズ */
+            font-size: 7rem; /* 文字サイズを非常に大きく */
             font-weight: bold; /* 太字 */
-            margin-bottom: 20px; /* 下余白 */
-            padding: 10px; /* 内側余白 */
+            margin-bottom: 20px; /* 下の余白 */
+            padding: 10px; /* 内側の余白 */
             background-color: #eff6ff; /* 背景色 (薄い青) */
-            border-radius: 8px; /* 角丸 */
+            border-radius: 8px; /* 角を丸くする */
         }
+        /* タイマーの状態によって色を変えるクラス */
         .timer-paused { color: #f59e0b; } /* 黄色 - 一時停止時 */
         .timer-ended { color: #dc2626; } /* 赤色 - 終了時 */
-        .timer-running { color: #1d4ed8; } /* 青色 - 通常時/リセット時 */
+        .timer-running { color: #1d4ed8; } /* 青色 - 実行中/リセット時 */
+
+
+        /* --- ボール配置表示 --- */
+        .arrangement-container {
+            display: flex;
+            justify-content: space-around; /* 左右に均等配置 */
+            margin-top: 20px;
+        }
+        .side-container {
+            display: flex;
+            flex-direction: column; /* 縦に並べる */
+            gap: 10px;
+        }
+        .side-container h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .circle-pair {
+            display: flex;
+            gap: 10px;
+        }
+        .outer-circle { /* ボールを配置する外側の円 */
+            width: 60px;
+            height: 60px;
+            border: 3px solid orange;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .inner-circle { /* ボール本体を表す内側の円 */
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+        }
+        .inner-circle.orange { background-color: orange; }
+        .inner-circle.purple { background-color: purple; }
 
 
         /* --- ボタン共通スタイル --- */
@@ -102,19 +141,20 @@
         .btn {
             padding: 10px 15px; font-size: 1rem; border-radius: 8px;
             border: none; cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.1s ease; /* アニメーション効果 */
+            transition: background-color 0.3s ease, transform 0.1s ease; /* ホバーやクリック時のアニメーション効果 */
             min-width: 100px; /* 最小幅 */
         }
-        .btn:active { transform: scale(0.98); } /* クリック時の縮小効果 */
-        .btn-primary { background-color: #2563eb; color: white; } /* プライマリボタン */
+        .btn:active { transform: scale(0.98); } /* クリック時に少し縮む効果 */
+        /* ボタンの種類ごとの色設定 */
+        .btn-primary { background-color: #2563eb; color: white; }
         .btn-primary:hover { background-color: #1d4ed8; }
-        .btn-secondary { background-color: #64748b; color: white; } /* セカンダリボタン */
+        .btn-secondary { background-color: #64748b; color: white; }
         .btn-secondary:hover { background-color: #475569; }
-        .btn-warning { background-color: #f59e0b; color: white; } /* 警告ボタン */
+        .btn-warning { background-color: #f59e0b; color: white; }
         .btn-warning:hover { background-color: #d97706; }
-        .btn-danger { background-color: #dc2626; color: white; } /* 危険ボタン */
+        .btn-danger { background-color: #dc2626; color: white; }
         .btn-danger:hover { background-color: #b91c1c; }
-        .btn-success { background-color: #16a34a; color: white; } /* 成功ボタン */
+        .btn-success { background-color: #16a34a; color: white; }
         .btn-success:hover { background-color: #15803d; }
         .btn:disabled { /* 無効状態のボタンスタイル */
             background-color: #9ca3af; color: #e5e7eb; cursor: not-allowed;
@@ -127,7 +167,7 @@
         .results-page-container {
             border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
         }
-        .record-display { /* 記録表示エリア（タイマーページ） */
+        .record-display { /* 記録表示エリア（タイマーページ）のスタイル */
             margin-top: 10px; padding: 10px 15px; background-color: #f3f4f6;
             border-radius: 8px; font-size: 1rem; color: #1f2937;
             min-height: 40px; display: flex; align-items: center; justify-content: center;
@@ -136,11 +176,8 @@
             background-color: #d1fae5; color: #065f46; font-weight: bold;
         }
         
-        /* --- タイムアウト時情報エリア --- */
+        /* --- タイムアウト時・手動終了時の情報エリア --- */
         #timeoutInfoContainer { margin-top: 15px; }
-        #timeoutMessageDisplay { 
-        }
-        /* --- 手動終了理由記録エリア --- */
         #manualEndReasonContainer .team-select-group { 
             margin-bottom: 15px; 
         }
@@ -192,7 +229,7 @@
         #intermediateMatchWinnerDisplay { font-size: 1.5rem; font-weight: bold; margin-top: 15px; margin-bottom: 15px; }
 
 
-        /* --- 結果表示ページ --- */
+        /* --- 最終結果表示ページ --- */
         .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; } 
         .results-table th, .results-table td { 
             border: 2px solid #000000; 
@@ -202,13 +239,15 @@
         .results-table th { background-color: #f3f4f6; font-weight: 600; } 
         .results-teams-display { font-size: 1.2rem; font-weight: bold; margin-bottom:15px; } 
         
+        /* 勝者や引き分けのセルをハイライト表示するためのスタイル */
         .highlight-winner-cell { 
-            background-color: #dcfce7; 
+            background-color: #dcfce7; /* 勝者: 薄い緑 */
         }
         .highlight-draw-cell { 
-            background-color: #fee2e2; 
+            background-color: #fee2e2; /* 引き分け: 薄い赤 */
         }
 
+        /* --- 総合成績サマリー --- */
         #summaryStatsContainer { 
             margin-top: 30px;
             text-align: left;
@@ -228,25 +267,20 @@
             background-color: #e9ecef;
         }
         .overall-winner-row td { 
-            background-color: #a7f3d0; 
+            background-color: #a7f3d0; /* 総合勝者の行のハイライト */
             font-weight: bold;
         }
         .overall-draw-team-name { 
-             background-color: #fecaca; 
+             background-color: #fecaca; /* 総合引き分けのチーム名のハイライト */
              font-weight: bold;
         }
-        /* --- 確認モーダル --- */
+        /* --- 確認モーダル (確認ダイアログ) --- */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000; 
+            position: fixed; top: 0; left: 0; /* 画面全体を覆う */
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明の黒い背景 */
+            display: flex; justify-content: center; align-items: center; /* 中央に配置 */
+            z-index: 1000; /* 他の要素より手前に表示 */
         }
         .modal-content {
             background-color: white;
@@ -267,6 +301,5 @@
             margin-top: 20px;
         }
 
-
-        /* --- 非表示用ユーティリティクラス --- */
+        /* --- 要素を非表示にするためのユーティリティクラス --- */
         .hidden { display: none !important; }

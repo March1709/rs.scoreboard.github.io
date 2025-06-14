@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoboSports審判支援ツール</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Tailwind CSS: ユーティリティクラスベースのCSSフレームワークをCDN経経由で読み込み、迅速なUI開発を可能にする -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tone.js: Web Audio APIを簡単に扱うためのライブラリ。タイマーの開始・終了時に音を鳴らすために使用 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         /* --- 全体スタイル --- */
@@ -173,13 +171,12 @@
         }
 
         /* --- 各セクションコンテナ --- */
-        .status-handling-container {
+        .status-handling-container,
+        .results-page-container {
             border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
         }
-        /* ★変更点: results-page-container をこちらに移動 */
         .score-input-page-container, 
-        .intermediate-result-page-container,
-        .results-page-container {
+        .intermediate-result-page-container {
              padding-top: 20px; margin-top: 20px;
         }
         .record-display { /* 記録表示エリア（タイマーページ）のスタイル */
@@ -481,8 +478,7 @@
         let manualEndReasonContainer = null; // 動的生成
         let endedByTeamSelect = null; // 動的生成
         let endReasonSelect = null; // 動的生成
-        let manualEndProceedToScoreButton = null; // 動的生成
-
+        
         // 試合終了時に表示されるコンテナとボタン
         const proceedToResultContainer = document.getElementById('proceedToResultContainer');
         const proceedToResultButton = document.getElementById('proceedToResultButton');
@@ -626,7 +622,7 @@
                 pageElement.classList.remove('hidden'); // 指定されたページだけ表示
             }
             
-            // ★変更点: 表示されるページに応じて「全体リセット」と「メインタイトル」の表示/非表示を切り替える
+            // 表示されるページに応じて「全体リセット」と「メインタイトル」の表示/非表示を切り替える
             if (fullResetButton && mainTitle) {
                 if (pageElement === universalTeamSelectionPage) {
                     fullResetButton.classList.remove('hidden');
@@ -685,14 +681,21 @@
 
             // 通常の終了理由
             const nonPenaltyReasons = [
-                "コールド勝利",
+                "コールド勝利(選択チームの勝利)",
+                "その他両チームの合意(申し出たチームを選択・裁定に無関係)",
                 "事故のロボット接触(6.28)", 
                 "全ロボット行動不能(6.32.9)", 
-                "オレンジボール5個以上10秒保持(6.30)",
-                "その他両チームの合意"
+                "オレンジボール5個以上10秒保持(6.30)"
             ];
-            nonPenaltyReasons.forEach(reason => {
-                endReasons.push({ text: reason, value: reason });
+            
+            nonPenaltyReasons.forEach(reasonText => {
+                let value = reasonText;
+                if(reasonText.startsWith("コールド勝利")) {
+                    value = "コールド勝利";
+                } else if(reasonText.startsWith("その他両チームの合意")){
+                    value = "その他両チームの合意";
+                }
+                 endReasons.push({ text: reasonText, value: value });
             });
 
             // 反則による終了理由
@@ -1193,10 +1196,10 @@
         }
         
         /**
-         * 手動終了の理由（対象チームと理由）が両方選択されたかチェックし、ボール数入力欄を有効化する。
+         * ★変更点: 「理由を確定」ボタンを削除したため、この関数で理由の保存とボール数入力欄の有効化を行う
          */
         function checkManualEndReasonSelection() {
-            // ★変更点: 理由が変更されるたびにボール数をリセットし、確定ボタンを無効化
+            // 理由が変更されるたびにボール数をリセットし、確定ボタンを無効化
             [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
                 if(sel) {
                     sel.value = "";
@@ -1782,11 +1785,10 @@
             }
             if(editMatchResultButton) {
                 editMatchResultButton.addEventListener('click', () => {
+                    setupScorePageUI('edit');
                     const match = matchesData[currentMatchNumber - 1];
                     if (!match) return;
 
-                    setupScorePageUI('edit');
-                    
                     // 以前の理由を復元
                     if (match.status && match.status !== 'タイムアップ') {
                         // status "チーム名 - 理由" をパースする
@@ -1801,7 +1803,7 @@
                         }
                         endReasonSelect.value = reasonValue;
                     }
-
+                    
                     // 以前のボール数を復元
                     if (currentMatchNumber === 2) { // コートチェンジを考慮
                         teamAOrangeBallsSelect.value = match.teamB_Orange ?? "";

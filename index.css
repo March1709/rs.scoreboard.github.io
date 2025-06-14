@@ -1,4 +1,4 @@
-/* --- 全体スタイル --- */
+ /* --- 全体スタイル --- */
         body {
             font-family: 'Inter', sans-serif; /* フォント指定 */
             display: flex; /* Flexboxレイアウトを有効化 */
@@ -161,11 +161,14 @@
         }
 
         /* --- 各セクションコンテナ --- */
-        .status-handling-container, 
-        .score-input-page-container, 
-        .intermediate-result-page-container, 
-        .results-page-container {
+        .status-handling-container {
             border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
+        }
+        /* ★変更点: results-page-container をこちらに移動 */
+        .score-input-page-container, 
+        .intermediate-result-page-container,
+        .results-page-container {
+             padding-top: 20px; margin-top: 20px;
         }
         .record-display { /* 記録表示エリア（タイマーページ）のスタイル */
             margin-top: 10px; padding: 10px 15px; background-color: #f3f4f6;

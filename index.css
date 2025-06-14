@@ -1,4 +1,4 @@
- /* --- 全体スタイル --- */
+/* --- 全体スタイル --- */
         body {
             font-family: 'Inter', sans-serif; /* フォント指定 */
             display: flex; /* Flexboxレイアウトを有効化 */
@@ -164,7 +164,6 @@
         .status-handling-container {
             border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
         }
-        /* ★変更点: results-page-container をこちらに移動 */
         .score-input-page-container, 
         .intermediate-result-page-container,
         .results-page-container {

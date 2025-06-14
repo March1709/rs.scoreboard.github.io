@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoboSports審判支援ツール</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- Tailwind CSS: ユーティリティクラスベースのCSSフレームワークをCDN経経由で読み込み、迅速なUI開発を可能にする -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js: Web Audio APIを簡単に扱うためのライブラリ。タイマーの開始・終了時に音を鳴らすために使用 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         /* --- 全体スタイル --- */
@@ -171,12 +173,12 @@
         }
 
         /* --- 各セクションコンテナ --- */
-        .status-handling-container,
-        .results-page-container {
+        .status-handling-container {
             border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
         }
         .score-input-page-container, 
-        .intermediate-result-page-container {
+        .intermediate-result-page-container,
+        .results-page-container {
              padding-top: 20px; margin-top: 20px;
         }
         .record-display { /* 記録表示エリア（タイマーページ）のスタイル */
@@ -383,7 +385,7 @@
                 <div id="intermediateMatchWinnerDisplay" class="font-bold text-xl my-4">勝者: チームX</div>
                 <div class="button-group" style="flex-direction: column; align-items: center;"> 
                     <button id="goToNextStepButton" class="btn btn-primary">次へ進む</button>
-                    <button id="editMatchResultButton" class="btn btn-secondary">ボール数変更</button>
+                    <button id="editMatchResultButton" class="btn btn-secondary">リザルトを変更</button>
                 </div>
             </div>
         </div>
@@ -1196,7 +1198,7 @@
         }
         
         /**
-         * ★変更点: 「理由を確定」ボタンを削除したため、この関数で理由の保存とボール数入力欄の有効化を行う
+         * 手動終了の理由（対象チームと理由）が両方選択されたかチェックし、ボール数入力欄を有効化する。
          */
         function checkManualEndReasonSelection() {
             // 理由が変更されるたびにボール数をリセットし、確定ボタンを無効化
@@ -1413,7 +1415,7 @@
                 }
             }
             if(editMatchResultButton) {
-                editMatchResultButton.textContent = `第${matchIndex + 1}マッチのボール数を変更`;
+                editMatchResultButton.textContent = `第${matchIndex + 1}マッチのリザルトを変更`;
             }
             showPage(intermediateResultPage); // 中間結果ページを表示
         }

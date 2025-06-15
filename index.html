@@ -686,7 +686,7 @@
         function initializeEndReasonSelects() {
             const endReasons = [];
 
-            // ★変更点: nonPenaltyReasons の配列の順序を変更
+            // 通常の終了理由
             const nonPenaltyReasons = [
                 "コールド勝利(選択チームの勝利)",
                 "その他両チームの合意(申し出たチームを選択・裁定に無関係)",
@@ -1203,19 +1203,11 @@
         }
         
         /**
-         * 手動終了の理由（対象チームと理由）が両方選択されたかチェックし、ボール数入力欄を有効化する。
+         * ★変更点: 「理由を確定」ボタンを削除したため、この関数で理由の保存とボール数入力欄の有効化を行う
          */
         function checkManualEndReasonSelection() {
-            // 理由が変更されるたびにボール数をリセットし、確定ボタンを無効化
-            [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
-                if(sel) {
-                    sel.value = "";
-                    sel.disabled = true;
-                }
-            });
-            if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
-
             if (endedByTeamSelect && endReasonSelect && endedByTeamSelect.value && endReasonSelect.value) {
+                // ★変更点: 理由が選択されたらすぐに後続処理を実行
                 const teamValue = endedByTeamSelect.value;
                 const reasonOption = endReasonSelect.options[endReasonSelect.selectedIndex];
                 const reasonValue = reasonOption.value;
@@ -1250,6 +1242,15 @@
                 }
 
                 checkIfScoresAreComplete();
+            } else {
+                // 理由が未選択の状態に戻った場合、ボール数入力を無効化
+                [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
+                    if(sel) {
+                        sel.value = "";
+                        sel.disabled = true;
+                    }
+                });
+                if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
             }
         }
         
@@ -1918,6 +1919,14 @@
                     setupScorePageUI(matchEndType);
                 });
             }
+
+            // ★変更点: 全てのselect要素にtouchmoveイベントリスナーを追加してスクロールを防止
+            const allSelects = document.querySelectorAll('select');
+            allSelects.forEach(select => {
+                select.addEventListener('touchmove', (event) => {
+                    event.stopPropagation();
+                });
+            });
 
             // 全画面表示ボタンのイベントリスナーを追加
             if (fullscreenButton) {

@@ -432,6 +432,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- ★変更点: 全画面表示ボタンを追加 -->
+    <button id="fullscreenButton" class="btn btn-secondary mt-4">全画面表示</button>
 
     <script>
         // --- DOM Elements (HTML要素の取得) ---
@@ -517,7 +520,11 @@
         let resultsTableBody = document.getElementById('resultsTableBody');
         let startNewGameButton = document.getElementById('startNewGameButton');
         let summaryStatsContainer = document.getElementById('summaryStatsContainer'); 
-        let overallWinnerDisplay = document.getElementById('overallWinnerDisplay'); 
+        let overallWinnerDisplay = document.getElementById('overallWinnerDisplay');
+        
+        // ★変更点: 全画面表示ボタン要素を取得
+        const fullscreenButton = document.getElementById('fullscreenButton');
+
 
         // --- Game State (アプリケーションの状態管理) ---
         // アプリケーション全体で共有される設定値や状態を保持する変数。
@@ -1913,6 +1920,30 @@
                     setupScorePageUI(matchEndType);
                 });
             }
+
+            // ★変更点: 全画面表示ボタンのイベントリスナーを追加
+            if (fullscreenButton) {
+                fullscreenButton.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => {
+                            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                        });
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        }
+                    }
+                });
+            }
+            document.addEventListener('fullscreenchange', () => {
+                if(fullscreenButton) {
+                    if (document.fullscreenElement) {
+                        fullscreenButton.textContent = '全画面表示を終了';
+                    } else {
+                        fullscreenButton.textContent = '全画面表示';
+                    }
+                }
+            });
             
             // 4. アプリケーションを初期状態にする
             fullApplicationReset(); 

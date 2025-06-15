@@ -433,7 +433,6 @@
         </div>
     </div>
     
-    <!-- ★変更点: 全画面表示ボタンを追加 -->
     <button id="fullscreenButton" class="btn btn-secondary mt-4">全画面表示</button>
 
     <script>
@@ -522,7 +521,6 @@
         let summaryStatsContainer = document.getElementById('summaryStatsContainer'); 
         let overallWinnerDisplay = document.getElementById('overallWinnerDisplay');
         
-        // ★変更点: 全画面表示ボタン要素を取得
         const fullscreenButton = document.getElementById('fullscreenButton');
 
 
@@ -688,7 +686,7 @@
         function initializeEndReasonSelects() {
             const endReasons = [];
 
-            // 通常の終了理由
+            // ★変更点: nonPenaltyReasons の配列の順序を変更
             const nonPenaltyReasons = [
                 "コールド勝利(選択チームの勝利)",
                 "その他両チームの合意(申し出たチームを選択・裁定に無関係)",
@@ -1921,7 +1919,7 @@
                 });
             }
 
-            // ★変更点: 全画面表示ボタンのイベントリスナーを追加
+            // 全画面表示ボタンのイベントリスナーを追加
             if (fullscreenButton) {
                 fullscreenButton.addEventListener('click', () => {
                     if (!document.fullscreenElement) {

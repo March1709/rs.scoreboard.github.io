@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoboSports審判支援ツール</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Tailwind CSS: ユーティリティクラスベースのCSSフレームワークをCDN経経由で読み込み、迅速なUI開発を可能にする -->
+    <!-- Tailwind CSS: ユーティリティクラスベースのCSSフレームワークをCDN経由で読み込み、迅速なUI開発を可能にする -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Tone.js: Web Audio APIを簡単に扱うためのライブラリ。タイマーの開始・終了時に音を鳴らすために使用 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
@@ -48,7 +48,6 @@
             color: #374151; /* 文字色 (グレー) */
             margin-bottom: 15px; /* 下の余白 */
         }
-
 
         /* --- チーム選択エリア --- */
         .team-selection-container {
@@ -106,7 +105,6 @@
         .timer-ended { color: #dc2626; } /* 赤色 - 終了時 */
         .timer-running { color: #1d4ed8; } /* 青色 - 実行中/リセット時 */
 
-
         /* --- ボール配置表示 --- */
         .arrangement-container {
             display: flex;
@@ -143,7 +141,6 @@
         }
         .inner-circle.orange { background-color: orange; }
         .inner-circle.purple { background-color: purple; }
-
 
         /* --- ボタン共通スタイル --- */
         .button-group {
@@ -242,7 +239,6 @@
         }
         #intermediateMatchWinnerDisplay { font-size: 1.5rem; font-weight: bold; margin-top: 15px; margin-bottom: 15px; }
 
-
         /* --- 最終結果表示ページ --- */
         .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; } 
         .results-table th, .results-table td { 
@@ -320,15 +316,20 @@
     </style>
 </head>
 <body>
+    <!-- 全体のコンテナ -->
     <div class="container">
+        <!-- メインタイトルと全体リセットボタン -->
         <h1 id="mainTitle" class="text-3xl font-bold mb-2 text-gray-800">RoboSports審判支援ツール</h1>
         <button id="fullResetButton" class="btn btn-danger mb-4">全体リセット</button>
 
+        <!-- ページ1: チーム選択ページ (中身はJSで動的生成) -->
         <div id="universalTeamSelectionPage" class="page"></div>
 
+        <!-- ページ2: ボール配置表示ページ -->
         <div id="ballArrangementPage" class="page hidden">
             <h2 class="match-title-display">ボール配置</h2>
             <div class="arrangement-container">
+                <!-- 左側と右側の配置エリア (中身はJSで動的生成) -->
                 <div id="leftArrangement" class="side-container">
                     <h3>左側</h3>
                 </div>
@@ -339,15 +340,17 @@
             <button id="proceedToMatch1Button" class="btn btn-primary mt-6">第1マッチに進む</button>
         </div>
 
-
+        <!-- ページ3: マッチ進行ページ (タイマー) -->
         <div id="matchPlayPage" class="page hidden">
             <div id="currentMatchDisplay" class="match-title-display">第Xマッチ</div>
             <div id="currentMatchTeamsDisplay" class="text-lg font-medium text-gray-700 mb-4">審判左手 vs 審判右手</div>
             <div id="timerDisplay" class="timer-display timer-running">02:00</div>
 
+            <!-- 試合開始前のタイマー操作ボタン -->
             <div id="timerControlsPreStart" class="button-group">
                 <button id="startButton" class="btn btn-primary">開始</button>
             </div>
+            <!-- 試合中のタイマー操作ボタン -->
             <div id="timerControlsActive" class="button-group hidden">
                 <button id="startButtonActive" class="btn btn-primary" disabled>開始</button>
                 <button id="pauseButton" class="btn btn-secondary">一時停止</button>
@@ -355,16 +358,20 @@
                 <button id="resetMatchTimerButton" class="btn btn-warning" disabled>このマッチのタイマーをリセット</button>
             </div>
             
+            <!-- 試合終了後の操作エリア -->
             <div class="status-handling-container">
                 <div id="proceedToResultContainer" class="hidden mt-4">
                     <button id="proceedToResultButton" class="btn btn-primary">リザルト入力へ進む</button>
                 </div>
             </div>
+            <!-- 現在の状態表示エリア -->
             <div id="recordDisplayOnTimerPage" class="record-display">記録待機中...</div>
         </div>
 
+        <!-- ページ4: スコア入力ページ (中身はJSで動的生成) -->
         <div id="scoreInputPage" class="page hidden"></div>
 
+        <!-- ページ5: 中間結果表示ページ -->
         <div id="intermediateResultPage" class="page hidden">
             <div class="intermediate-result-page-container">
                 <h2 id="intermediateResultTitle" class="match-title-display">第Xマッチ 結果</h2>
@@ -380,7 +387,8 @@
                         </tr>
                     </thead>
                     <tbody id="intermediateMatchResultTableBody">
-                        </tbody>
+                        <!-- 結果はJSで動的に生成 -->
+                    </tbody>
                 </table>
                 <div id="intermediateMatchWinnerDisplay" class="font-bold text-xl my-4">勝者: チームX</div>
                 <div class="button-group" style="flex-direction: column; align-items: center;"> 
@@ -390,7 +398,7 @@
             </div>
         </div>
 
-
+        <!-- ページ6: 最終結果表示ページ -->
         <div id="resultsPage" class="page hidden">
             <div class="results-page-container">
                 <h2 class="match-title-display">試合結果</h2>
@@ -413,15 +421,17 @@
                         </tr>
                     </thead>
                     <tbody id="resultsTableBody">
-                        </tbody>
+                        <!-- 結果はJSで動的に生成 -->
+                    </tbody>
                 </table>
-                <div id="summaryStatsContainer">
-                    </div>
+                <!-- 総合成績サマリーエリア (中身はJSで動的生成) -->
+                <div id="summaryStatsContainer"></div>
                 <div id="overallWinnerDisplay" class="mt-4 font-bold text-2xl"></div>
                 <button id="startNewGameButton" class="btn btn-success mt-4">新しい試合を開始</button>
             </div>
         </div>
 
+        <!-- 確認モーダル (ダイアログ) -->
         <div id="confirmationModal" class="modal-overlay hidden">
             <div class="modal-content">
                 <h3 id="confirmationModalMessage">試合を終了しますか？</h3>
@@ -433,10 +443,13 @@
         </div>
     </div>
     
+    <!-- 全画面表示切り替えボタン -->
     <button id="fullscreenButton" class="btn btn-secondary mt-4">全画面表示</button>
 
     <script>
+        // ===================================================================================
         // --- DOM Elements (HTML要素の取得) ---
+        // ===================================================================================
         // JavaScriptから操作するために、HTML内の各要素をIDで取得し、変数に格納する。
         // nullで初期化されている変数は、JavaScriptによって後から動的に生成される要素。
 
@@ -478,10 +491,10 @@
         const resetMatchTimerButton = document.getElementById('resetMatchTimerButton');
         const endMatchButton = document.getElementById('endMatchButton'); 
         
-        // 手動終了・タイムアウト時の記録関連要素
-        let manualEndReasonContainer = null; // 動的生成
-        let endedByTeamSelect = null; // 動的生成
-        let endReasonSelect = null; // 動的生成
+        // スコア入力ページ内の手動終了・記録関連要素 (動的生成)
+        let manualEndReasonContainer = null;
+        let endedByTeamSelect = null;
+        let endReasonSelect = null;
         
         // 試合終了時に表示されるコンテナとボタン
         const proceedToResultContainer = document.getElementById('proceedToResultContainer');
@@ -524,7 +537,9 @@
         const fullscreenButton = document.getElementById('fullscreenButton');
 
 
+        // ===================================================================================
         // --- Game State (アプリケーションの状態管理) ---
+        // ===================================================================================
         // アプリケーション全体で共有される設定値や状態を保持する変数。
 
         const TOTAL_MATCHES = 3; // 試合は3マッチ制
@@ -536,13 +551,34 @@
         let timeLeft = INITIAL_TIME_SECONDS; // 残り時間（秒）
         let timerInterval = null; // setIntervalのID。タイマーを停止するために使用
         let timerRunning = false; // タイマーが作動中かどうかのフラグ
-        let matchEndType = 'timeout'; // 'timeout' or 'manual'
+        let matchEndType = 'timeout'; // 試合の終了方法 ('timeout' or 'manual')
         
         let confirmedTeamA = ""; // 確定したチームAの内部ID (CSVの番号など)
         let confirmedTeamB = ""; // 確定したチームBの内部ID
         let confirmedTeamADisplay = ""; // 確定したチームAの表示名
         let confirmedTeamBDisplay = ""; // 確定したチームBの表示名
-        let teamListFromCsv = []; // CSVから読み込んだチームのリスト（{value: '1', text: '1 - チーム名'} の形式）
+        
+        // ★変更点: CSVから読み込む代わりに、チームリストを直接コードに記述する
+        const teamListFromCsv = [
+            { value: '1', text: '1 - 夙川第三世代' },
+            { value: '2', text: '2 - うなぎRO' },
+            { value: '3', text: '3 - SPEED' },
+            { value: '4', text: '4 - Tezukayamaの森' },
+            { value: '5', text: '5 - Ousho' },
+            { value: '6', text: '6 - SS' },
+            { value: '7', text: '7 - なんでもいい' },
+            { value: '8', text: '8 - 月島ダイナソー' },
+            { value: '9', text: '9 - Assassin' },
+            { value: '10', text: '10 - フローライト' },
+            { value: '11', text: '11 - PK4' },
+            { value: '12', text: '12 - 土曜出勤@spike信者' },
+            { value: '13', text: '13 - むしくん' },
+            { value: '14', text: '14 - いわし　にんじん　マヨネーズ' },
+            { value: '15', text: '15 - すっしーず' },
+            { value: '16', text: '16 - ロマン砲・Ω' },
+            { value: '17', text: '17 - SKY1' },
+            { value: '18', text: '18 - BLUE1' }
+        ];
         let matchesData = []; // 各マッチの結果を格納する配列。インデックスが (マッチ番号 - 1) に対応。
 
         // 反則（自動で相手の得点になり、違反回数にカウントされる）と見なされる理由のリスト
@@ -562,7 +598,9 @@
         // 総違反回数としてカウントされる理由のリスト（今回は上記PENALTY_FIXED_SCORE_REASONSと同じ）
         const FOUL_COUNTING_REASONS = [...PENALTY_FIXED_SCORE_REASONS];
 
+        // ===================================================================================
         // --- Audio Setup (Tone.jsによる音声設定) ---
+        // ===================================================================================
         let synth = null; // 音を出すためのシンセサイザーオブジェクト
         const BEEP_VOLUME = 0; // ビープ音の音量 (0はデフォルト音量)
 
@@ -585,14 +623,14 @@
         // ユーザーの初回クリックでオーディオを有効化する
         document.body.addEventListener('click', initializeAudio, { once: true });
 
-
         /**
          * 短いビープ音（一時停止音など）を再生する。
          */
         function playShortBeep() {
-            initializeAudio(); 
+            initializeAudio(); // 再生前に初期化されているか確認
             if (synth && Tone.context.state === 'running') {
                 try {
+                    // "G5"の音を0.1秒間再生
                     synth.triggerAttackRelease("G5", "0.1", Tone.now()); 
                 } catch (e) {
                     console.error("Error playing short beep:", e);
@@ -604,9 +642,10 @@
          * 長いビープ音（開始・終了音）を再生する。
          */
         function playLongBeep() {
-            initializeAudio();
+            initializeAudio(); // 再生前に初期化されているか確認
             if (synth && Tone.context.state === 'running') {
                  try {
+                    // "E5"の音を1.5秒間再生
                     synth.triggerAttackRelease("E5", "1.5", Tone.now()); 
                 } catch (e) {
                     console.error("Error playing long beep:", e);
@@ -615,14 +654,18 @@
         }
 
 
+        // ===================================================================================
         // --- Page Navigation & Display Control (ページの表示切り替え) ---
+        // ===================================================================================
         
         /**
          * 指定されたページ要素だけを表示し、他のページはすべて非表示にする。
          * @param {HTMLElement} pageElement 表示したいページのコンテナ要素。
          */
         function showPage(pageElement) {
-            [universalTeamSelectionPage, ballArrangementPage, matchPlayPage, scoreInputPage, intermediateResultPage, resultsPage].forEach(p => {
+            // 全てのページコンテナを配列にまとめる
+            const allPages = [universalTeamSelectionPage, ballArrangementPage, matchPlayPage, scoreInputPage, intermediateResultPage, resultsPage];
+            allPages.forEach(p => {
                 if (p) p.classList.add('hidden'); // 全てのページを一旦非表示に
             });
             if (pageElement) {
@@ -632,6 +675,7 @@
             // 表示されるページに応じて「全体リセット」と「メインタイトル」の表示/非表示を切り替える
             if (fullResetButton && mainTitle) {
                 if (pageElement === universalTeamSelectionPage) {
+                    // 最初のページでのみ表示する
                     fullResetButton.classList.remove('hidden');
                     mainTitle.classList.remove('hidden');
                 } else {
@@ -697,6 +741,7 @@
             
             nonPenaltyReasons.forEach(reasonText => {
                 let value = reasonText;
+                // 特定の理由には短いvalueを設定
                 if(reasonText.startsWith("コールド勝利")) {
                     value = "コールド勝利";
                 } else if(reasonText.startsWith("その他両チームの合意")){
@@ -719,10 +764,12 @@
         }
 
 
+        // ===================================================================================
         // --- Initialization and Resets (初期化とリセット処理) ---
+        // ===================================================================================
 
         /**
-         * CSVからチームリストが読み込まれた後に、チーム選択のUIをセットアップする。
+         * チーム選択のUIをセットアップする。
          */
         function initializeTeamSelectionUI() { 
             // 動的に生成されたHTML要素を再度取得
@@ -736,7 +783,7 @@
                 return;
             }
             
-            // CSVから読み込んだチームリストをプルダウンに設定
+            // ハードコードされたチームリストをプルダウンに設定
             populateSelectWithOptions(teamASelect, 0, true, teamListFromCsv); 
             populateSelectWithOptions(teamBSelect, 0, true, teamListFromCsv);
 
@@ -746,7 +793,6 @@
             teamASelect.disabled = false;
             teamBSelect.disabled = false;
             if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.remove('hidden');
-
 
              // イベントリスナーを設定
              teamASelect.addEventListener('change', handleTeamSelectionChange);
@@ -849,49 +895,20 @@
             confirmedTeamB = "";
             confirmedTeamADisplay = "";
             confirmedTeamBDisplay = "";
-            teamListFromCsv = []; 
-
-            // UIを初期状態に戻す
-            if(csvFileInput) csvFileInput.value = ""; // ファイル選択をクリア
-            const csvUploadContainer = document.getElementById('csvUploadContainer'); 
-            if (csvUploadContainer) {
-                 csvUploadContainer.classList.remove('hidden'); // CSVアップロードエリアを表示
-            }
-            if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.add('hidden'); // チーム選択エリアを非表示
             
             resetMatchSpecificUIData(); 
-            // scoreInputPageの要素はreassignDynamicPageElementsで取得済みなので、ここで初期化できる
             initializeScoreSelects(); 
+
+            // チーム選択UIを直接初期化する
+            initializeTeamSelectionUI();
 
             // 最初のチーム選択ページを表示
             showPage(universalTeamSelectionPage);
         }
 
-        /**
-         * CSVから読み込んだチームリストを保持したまま、新しい試合を開始する。
-         * (全体リセットとは異なり、再度CSVを読み込む手間を省く)
-         */
-        function resetForNewGameWithSameCsv() { 
-            currentMatchNumber = 1;
-            matchesData = [];
-            
-            resetMatchSpecificUIData();
-            initializeScoreSelects(); 
-
-            // チーム選択UIを再表示・初期化
-            const csvUploadContainer = document.getElementById('csvUploadContainer');
-            if (universalTeamSelectionPage && csvUploadContainer && teamSelectDropdownsContainer) {
-                csvUploadContainer.classList.add('hidden'); // CSVアップロードは隠す
-                initializeTeamSelectionUI(); // チーム選択プルダウンを再設定
-                showPage(universalTeamSelectionPage); // チーム選択ページを表示
-            } else {
-                console.error("Cannot reset to team selection: universal page or containers not found.");
-                fullApplicationReset(); // 何か問題があれば完全リセット
-            }
-        }
-
-
+        // ===================================================================================
         // --- Team Selection Logic (チーム選択のロジック) ---
+        // ===================================================================================
 
         /**
          * チーム選択プルダウンが変更されたときに呼び出され、選択状態を検証する。
@@ -920,7 +937,9 @@
             }
         }
 
+        // ===================================================================================
         // --- Ball Arrangement Logic (ボール配置のロジック) ---
+        // ===================================================================================
 
         /**
          * ボールの初期配置をランダムに生成して表示する。
@@ -1001,7 +1020,9 @@
             showPage(ballArrangementPage); // ボール配置ページを表示
         }
 
+        // ===================================================================================
         // --- Timer Logic (タイマーのロジック) ---
+        // ===================================================================================
         
         /**
          * 秒数を mm:ss 形式の文字列にフォーマットする。
@@ -1011,6 +1032,7 @@
         function formatTime(seconds) {
             const minutes = Math.floor(seconds / 60);
             const secs = seconds % 60;
+            // String.padStart() を使って、1桁の数字の前に0を補完する (例: 5 -> "05")
             return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
@@ -1160,14 +1182,13 @@
 
             // プルダウンをリセット
             scoreSelects.forEach(sel => {
-                if(sel) {
-                    sel.value = ""; 
-                }
+                if(sel) sel.value = ""; 
             });
 
             // 終了タイプに応じてUIを制御
             if (manualEndReasonContainer) {
                 if (endType === 'manual' || endType === 'edit') {
+                    // 手動終了または編集モードの場合、理由選択エリアを表示
                     manualEndReasonContainer.classList.remove('hidden');
                     populateSelectWithOptions(endedByTeamSelect, 0, true, [
                         {text: confirmedTeamADisplay, value: confirmedTeamA},
@@ -1178,13 +1199,16 @@
                     endReasonSelect.disabled = false;
                     
                     if (endType === 'manual') {
+                        // 新規の手動終了の場合、ボール数は入力不可
                         scoreSelects.forEach(sel => { if(sel) sel.disabled = true; });
-                    } else { // edit
+                    } else { // 'edit'
+                        // 編集の場合、ボール数を入力可能にする
                         scoreSelects.forEach(sel => { if(sel) sel.disabled = false; });
                     }
                      if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
 
                 } else { // 'timeout'
+                    // タイムアウトの場合、理由選択エリアは非表示
                     manualEndReasonContainer.classList.add('hidden');
                     scoreSelects.forEach(sel => { if(sel) sel.disabled = false; });
                     checkIfScoresAreComplete();
@@ -1203,11 +1227,12 @@
         }
         
         /**
-         * ★変更点: 「理由を確定」ボタンを削除したため、この関数で理由の保存とボール数入力欄の有効化を行う
+         * 手動終了の理由が選択されたときの処理。
+         * 理由に応じてボール数入力欄の状態を制御し、データを保存する。
          */
         function checkManualEndReasonSelection() {
             if (endedByTeamSelect && endReasonSelect && endedByTeamSelect.value && endReasonSelect.value) {
-                // ★変更点: 理由が選択されたらすぐに後続処理を実行
+                // 理由が選択されたら、関連データを保存
                 const teamValue = endedByTeamSelect.value;
                 const reasonOption = endReasonSelect.options[endReasonSelect.selectedIndex];
                 const reasonValue = reasonOption.value;
@@ -1223,25 +1248,37 @@
                 matchesData[currentMatchNumber - 1].isPenaltyFixedScore = isPenalty;
                 matchesData[currentMatchNumber - 1].penaltyLosingTeam = (isCold || isPenalty) ? teamValue : "";
 
+                // 全てのボール数入力欄を有効化
                 [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
                     if (sel) sel.disabled = false;
                 });
                 
+                // ★変更点: コールド勝利の場合、勝利チームのオレンジを0で固定し、両チームのオレンジ入力欄を無効化する
                 if (isCold) {
-                    const losingTeamValue = matchesData[currentMatchNumber-1].penaltyLosingTeam; 
-                    let uiLosingOrangeSelect, uiWinningOrangeSelect;
-                    if (currentMatchNumber === 2) { 
-                        uiLosingOrangeSelect = (losingTeamValue === confirmedTeamB) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
-                        uiWinningOrangeSelect = (losingTeamValue === confirmedTeamB) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
-                    } else { 
-                        uiLosingOrangeSelect = (losingTeamValue === confirmedTeamA) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
-                        uiWinningOrangeSelect = (losingTeamValue === confirmedTeamA) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
-                    }
-                    if (uiLosingOrangeSelect) { uiLosingOrangeSelect.value = "0"; uiLosingOrangeSelect.disabled = true; }
-                    if (uiWinningOrangeSelect) { uiWinningOrangeSelect.value = String(MAX_ORANGE_BALLS); uiWinningOrangeSelect.disabled = true; }
-                }
+                    const winningTeamValue = endedByTeamSelect.value;
+                    let uiWinningOrangeSelect, uiLosingOrangeSelect;
 
-                checkIfScoresAreComplete();
+                    // 第2マッチのコートチェンジを考慮
+                    if (currentMatchNumber === 2) {
+                        uiWinningOrangeSelect = (winningTeamValue === confirmedTeamB) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
+                        uiLosingOrangeSelect  = (winningTeamValue === confirmedTeamB) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
+                    } else { // Match 1 or 3
+                        uiWinningOrangeSelect = (winningTeamValue === confirmedTeamA) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
+                        uiLosingOrangeSelect  = (winningTeamValue === confirmedTeamA) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
+                    }
+
+                    // オレンジボールの数を設定して無効化
+                    if (uiWinningOrangeSelect) {
+                        uiWinningOrangeSelect.value = "0";
+                        uiWinningOrangeSelect.disabled = true;
+                    }
+                    if (uiLosingOrangeSelect) {
+                        uiLosingOrangeSelect.value = String(MAX_ORANGE_BALLS);
+                        uiLosingOrangeSelect.disabled = true;
+                    }
+                }
+                
+                checkIfScoresAreComplete(); // 入力完了チェック
             } else {
                 // 理由が未選択の状態に戻った場合、ボール数入力を無効化
                 [teamAOrangeBallsSelect, teamAPurpleBallsSelect, teamBOrangeBallsSelect, teamBPurpleBallsSelect].forEach(sel => {
@@ -1254,7 +1291,9 @@
             }
         }
         
+        // ===================================================================================
         // --- Score Input Logic (スコア入力のロジック) ---
+        // ===================================================================================
 
         /**
          * 片方のボール数を入力すると、もう片方のチームのボール数が自動で入力される処理。
@@ -1283,15 +1322,10 @@
             const currentMatchRecord = matchesData[currentMatchNumber - 1] || {};
             const valuesToValidate = [];
 
-            // コールド勝ちの場合は紫ボールのみチェック対象
-            if (currentMatchRecord.isColdGame) { 
-                valuesToValidate.push(teamAPurpleBallsSelect?.value, teamBPurpleBallsSelect?.value);
-            } else { // それ以外は全てのボール数をチェック
-                valuesToValidate.push(
-                    teamAOrangeBallsSelect?.value, teamAPurpleBallsSelect?.value,
-                    teamBOrangeBallsSelect?.value, teamBPurpleBallsSelect?.value
-                );
-            }
+            valuesToValidate.push(
+                teamAOrangeBallsSelect?.value, teamAPurpleBallsSelect?.value,
+                teamBOrangeBallsSelect?.value, teamBPurpleBallsSelect?.value
+            );
             
             // 全ての値が選択済み（空文字や初期値でない）か
             const allSelected = valuesToValidate.every(val => val && val !== "");
@@ -1321,7 +1355,9 @@
             }
         }
 
+        // ===================================================================================
         // --- Intermediate Result Page Logic (中間結果ページのロジック) ---
+        // ===================================================================================
 
         /**
          * マッチごとの結果を表示する。
@@ -1344,16 +1380,13 @@
             let teamBOrangeIntermediate = match.teamB_Orange;
             let teamBPurpleIntermediate = match.teamB_Purple;
 
-            if (match.isColdGame) {
-                 // ルールに基づき、勝者は+8点、敗者は-4点とする
-                if (match.penaltyLosingTeam === confirmedTeamA) { teamAScoreIntermediate = -4; teamBScoreIntermediate = 8; }
-                else { teamAScoreIntermediate = 8; teamBScoreIntermediate = -4; }
-            } else if (match.isPenaltyFixedScore) {
+            if (match.isPenaltyFixedScore) {
                 // 反則の場合は点数が逆になる
                 if (match.penaltyLosingTeam === confirmedTeamA) { teamAScoreIntermediate = 8; teamBScoreIntermediate = -4; }
                 else { teamAScoreIntermediate = -4; teamBScoreIntermediate = 8; }
             } else {
                  // 通常の得点計算 (オレンジボール1点、紫ボール-2点)
+                 // コールド勝利の場合もこの計算が適用される
                 teamAScoreIntermediate = teamAOrangeIntermediate - (teamAPurpleIntermediate * 2);
                 teamBScoreIntermediate = teamBOrangeIntermediate - (teamBPurpleIntermediate * 2);
             }
@@ -1426,7 +1459,9 @@
             showPage(intermediateResultPage); // 中間結果ページを表示
         }
         
+        // ===================================================================================
         // --- Results Page Logic (最終結果ページのロジック) ---
+        // ===================================================================================
 
         /**
          * 3マッチ全ての総合結果を表示する。
@@ -1445,6 +1480,10 @@
             let gameTotalPurpleBallsTeamA = 0;
             let gameTotalOrangeBallsTeamB = 0;
             let gameTotalPurpleBallsTeamB = 0;
+            // ★変更点: マッチごとの得点を合計するための変数を追加
+            let gameTotalScoreTeamA = 0;
+            let gameTotalScoreTeamB = 0;
+
 
             // 3マッチ分のデータをループして集計 & テーブル描画
             for (let i = 0; i < TOTAL_MATCHES; i++) {
@@ -1474,17 +1513,20 @@
                 if (teamBOrange !== undefined) gameTotalOrangeBallsTeamB += teamBOrange;
                 if (teamBPurple !== undefined) gameTotalPurpleBallsTeamB += teamBPurple;
 
-                if (match.isColdGame) { 
-                    if (match.penaltyLosingTeam === confirmedTeamA) { teamAScore = -4; teamBScore = 8; } 
-                    else if (match.penaltyLosingTeam === confirmedTeamB) { teamAScore = 8; teamBScore = -4; }
-                } else if (match.isPenaltyFixedScore) { 
+                if (match.isPenaltyFixedScore) { 
                     if (match.penaltyLosingTeam === confirmedTeamA) { teamAScore = 8; teamBScore = -4; } 
                     else if (match.penaltyLosingTeam === confirmedTeamB) { teamAScore = -4; teamBScore = 8; }
                 } else { 
+                    // 通常の得点計算 (オレンジボール1点、紫ボール-2点)
+                    // コールド勝利の場合もこの計算が適用される
                     if (teamAOrange !== undefined && teamAPurple !== undefined) { teamAScore = teamAOrange - (teamAPurple * 2); }
                     if (teamBOrange !== undefined && teamBPurple !== undefined) { teamBScore = teamBOrange - (teamBPurple * 2); }
                 }
                 
+                // ★変更点: 各マッチのスコアを合計に加算
+                if (teamAScore !== null) gameTotalScoreTeamA += teamAScore;
+                if (teamBScore !== null) gameTotalScoreTeamB += teamBScore;
+
                 // 勝利数を集計
                 if (match.winner === confirmedTeamA) { gameTotalWinsTeamA++; }
                 else if (match.winner === confirmedTeamB) { gameTotalWinsTeamB++; }
@@ -1532,12 +1574,11 @@
                     overallWinner = confirmedTeamBDisplay;
                     winReasonText = "[総違反回数]";
                 } else { // 違反回数も同じ場合
-                    const overallScoreTeamA = gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2);
-                    const overallScoreTeamB = gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2);
-                    if (overallScoreTeamA < overallScoreTeamB) { // スコアは小さい方が勝ち
+                    // ★変更点: 総合スコアの判定を、合計したマッチごとの得点で行う
+                    if (gameTotalScoreTeamA < gameTotalScoreTeamB) { // スコアは小さい方が勝ち
                         overallWinner = confirmedTeamADisplay;
                         winReasonText = "[総ボールスコア]";
-                    } else if (overallScoreTeamB < overallScoreTeamA) {
+                    } else if (gameTotalScoreTeamB < gameTotalScoreTeamA) {
                         overallWinner = confirmedTeamBDisplay;
                         winReasonText = "[総ボールスコア]";
                     } else { // スコアも同じ場合は引き分け
@@ -1568,7 +1609,8 @@
                                 <td>${gameTotalFoulsTeamA}</td>
                                 <td>${gameTotalOrangeBallsTeamA}</td>
                                 <td>${gameTotalPurpleBallsTeamA}</td>
-                                <td>${gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2)}</td>
+                                <!-- ★変更点: 表示するスコアを、合計したマッチごとの得点に変更 -->
+                                <td>${gameTotalScoreTeamA}</td>
                             </tr>
                             <tr id="summaryRowTeamB">
                                 <td id="summaryNameTeamB">${confirmedTeamBDisplay}</td>
@@ -1576,7 +1618,8 @@
                                 <td>${gameTotalFoulsTeamB}</td>
                                 <td>${gameTotalOrangeBallsTeamB}</td>
                                 <td>${gameTotalPurpleBallsTeamB}</td>
-                                <td>${gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2)}</td>
+                                <!-- ★変更点: 表示するスコアを、合計したマッチごとの得点に変更 -->
+                                <td>${gameTotalScoreTeamB}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1613,24 +1656,21 @@
             showPage(resultsPage); // 最終結果ページを表示
         }
         
+        // ===================================================================================
         // --- Initial Setup (初期設定) ---
+        // ===================================================================================
 
         /**
          * アプリケーションのUI部品（ページコンテナの中身）を動的に生成し、HTMLに挿入する。
          * これにより、初期HTMLをシンプルに保つことができる。
          */
         function injectMissingHTML() {
-            // チーム選択ページの中身が空の場合にHTMLを挿入
+            // ★変更点: CSVアップロード機能を削除し、チーム選択のみのHTMLを挿入
             if (universalTeamSelectionPage && universalTeamSelectionPage.children.length === 0) {
                  const teamSelectionHTML = `
                     <div class="team-selection-container">
                         <h2 class="section-title">対戦チーム選択</h2>
-                        <div class="csv-upload-container" id="csvUploadContainer">
-                            <label for="csvFileInput" class="block mb-2 text-sm font-medium text-gray-900">チームリストCSVファイル (1列目: チーム番号, 2列目: チーム名):</label>
-                            <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
-                            <button id="loadCsvButton" class="btn btn-primary mt-2">CSV読み込み</button>
-                        </div>
-                        <div id="teamSelectDropdownsContainer" class="hidden">
+                        <div id="teamSelectDropdownsContainer">
                             <div class="team-select-group">
                                 <label for="teamASelectInternal">審判左手:</label>
                                 <select id="teamASelectInternal"><option value="">チームを選択</option></select>
@@ -1643,54 +1683,9 @@
                         </div>
                     </div>`;
                 universalTeamSelectionPage.innerHTML = teamSelectionHTML;
-                // 挿入した要素を取得してイベントリスナーを設定
-                csvFileInput = document.getElementById('csvFileInput');
-                loadCsvButton = document.getElementById('loadCsvButton');
                 teamSelectDropdownsContainer = document.getElementById('teamSelectDropdownsContainer');
-                if(loadCsvButton) loadCsvButton.addEventListener('click', () => { 
-                    if (csvFileInput && csvFileInput.files && csvFileInput.files.length > 0) {
-                        const file = csvFileInput.files[0];
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            const csvData = event.target.result;
-                            try {
-                                const lines = csvData.split(/\r\n|\n/); 
-                                teamListFromCsv = []; 
-                                lines.forEach(line => {
-                                    const columns = line.split(','); 
-                                    if (columns[0] && columns[0].trim() !== "" && columns[1] && columns[1].trim() !== "") { 
-                                        const teamNumber = columns[0].trim();
-                                        const teamName = columns[1].trim();
-                                        teamListFromCsv.push({ value: teamNumber, text: `${teamNumber} - ${teamName}` });
-                                    }
-                                });
-                                if (teamListFromCsv.length > 0) {
-                                    initializeTeamSelectionUI(); 
-                                    const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
-                                    if(displayEl) displayEl.textContent = "CSVからチームを読み込みました。対戦チームを選択してください。";
-                                    if(document.getElementById('csvUploadContainer')) document.getElementById('csvUploadContainer').classList.add('hidden');
-                                } else {
-                                     const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
-                                    if(displayEl) displayEl.textContent = "CSVファイルに有効なチーム情報（番号と名前）がありません。";
-                                }
-                            } catch (error) {
-                                console.error("CSVパースエラー:", error);
-                                const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
-                                if(displayEl) displayEl.textContent = "CSVファイルの読み込みに失敗しました。";
-                            }
-                        };
-                        reader.onerror = function() {
-                            console.error("ファイル読み込みエラー");
-                             const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
-                            if(displayEl) displayEl.textContent = "ファイル読み込み中にエラーが発生しました。";
-                        };
-                        reader.readAsText(file, 'UTF-8'); 
-                    } else {
-                         const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
-                        if(displayEl) displayEl.textContent = "CSVファイルを選択してください。";
-                    }
-                });
             }
+            // スコア入力ページの中身が空の場合にHTMLを挿入
             if (scoreInputPage && scoreInputPage.children.length === 0) {
                 const scoreInputHTML = `
                     <div class="score-input-page-container">
@@ -1760,7 +1755,7 @@
             endedByTeamSelect = document.getElementById('endedByTeamSelectInternal');
             endReasonSelect = document.getElementById('endReasonSelectInternal');
             
-            // 中間結果ページの要素を取得 (HTMLに既に存在するため、再取得は不要だが念のため)
+            // 中間結果ページの要素を取得
             intermediateResultTitle = document.getElementById('intermediateResultTitle');
             intermediateMatchTeams = document.getElementById('intermediateMatchTeams');
             intermediateMatchStatusDisplay = document.getElementById('intermediateMatchStatusDisplay');
@@ -1792,8 +1787,9 @@
                 });
             }
             if(editMatchResultButton) {
+                // 「リザルトを変更」ボタンの処理
                 editMatchResultButton.addEventListener('click', () => {
-                    setupScorePageUI('edit');
+                    setupScorePageUI('edit'); // 編集モードでスコアページを開く
                     const match = matchesData[currentMatchNumber - 1];
                     if (!match) return;
 
@@ -1812,8 +1808,8 @@
                         endReasonSelect.value = reasonValue;
                     }
                     
-                    // 以前のボール数を復元
-                    if (currentMatchNumber === 2) { // コートチェンジを考慮
+                    // 以前のボール数を復元 (第2マッチのコートチェンジを考慮)
+                    if (currentMatchNumber === 2) { 
                         teamAOrangeBallsSelect.value = match.teamB_Orange ?? "";
                         teamAPurpleBallsSelect.value = match.teamB_Purple ?? "";
                         teamBOrangeBallsSelect.value = match.teamA_Orange ?? "";
@@ -1825,24 +1821,26 @@
                         teamBPurpleBallsSelect.value = match.teamB_Purple ?? "";
                     }
                     
-                    // コールドゲームの場合のdisabled状態を再適用
-                    if(match.isColdGame) {
-                        const losingTeamValue = match.penaltyLosingTeam; 
-                        let uiLosingOrangeSelect, uiWinningOrangeSelect;
-                        if (currentMatchNumber === 2) { 
-                            uiLosingOrangeSelect = (losingTeamValue === confirmedTeamB) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
-                            uiWinningOrangeSelect = (losingTeamValue === confirmedTeamB) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
-                        } else { 
-                            uiLosingOrangeSelect = (losingTeamValue === confirmedTeamA) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
-                            uiWinningOrangeSelect = (losingTeamValue === confirmedTeamA) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
+                    // ★変更点: コールドゲームの場合、オレンジボールの入力欄を無効化する
+                    if (match.isColdGame) {
+                        const winningTeamValue = match.penaltyLosingTeam;
+                        let uiWinningOrangeSelect, uiLosingOrangeSelect;
+                        if (currentMatchNumber === 2) {
+                            uiWinningOrangeSelect = (winningTeamValue === confirmedTeamB) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
+                            uiLosingOrangeSelect  = (winningTeamValue === confirmedTeamB) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
+                        } else {
+                            uiWinningOrangeSelect = (winningTeamValue === confirmedTeamA) ? teamAOrangeBallsSelect : teamBOrangeBallsSelect;
+                            uiLosingOrangeSelect  = (winningTeamValue === confirmedTeamA) ? teamBOrangeBallsSelect : teamAOrangeBallsSelect;
                         }
-                        if (uiLosingOrangeSelect) { uiLosingOrangeSelect.disabled = true; }
-                        if (uiWinningOrangeSelect) { uiWinningOrangeSelect.disabled = true; }
+                        if (uiWinningOrangeSelect) uiWinningOrangeSelect.disabled = true;
+                        if (uiLosingOrangeSelect) uiLosingOrangeSelect.disabled = true;
                     }
-                    checkIfScoresAreComplete();
+                    
+                    checkIfScoresAreComplete(); // 状態を再チェック
                 });
             }
             
+             // 手動終了の理由選択時のイベントリスナー
              if(endedByTeamSelect) endedByTeamSelect.addEventListener('change', checkManualEndReasonSelection);
              if(endReasonSelect) endReasonSelect.addEventListener('change', checkManualEndReasonSelection);
 
@@ -1855,13 +1853,8 @@
             summaryStatsContainer = document.getElementById('summaryStatsContainer'); 
             overallWinnerDisplay = document.getElementById('overallWinnerDisplay');
             if(startNewGameButton) {
-                startNewGameButton.addEventListener('click', () => {
-                    if (teamListFromCsv && teamListFromCsv.length > 0) {
-                        resetForNewGameWithSameCsv();
-                    } else {
-                        fullApplicationReset();
-                    }
-                });
+                // ★変更点: 新しい試合の開始処理を簡略化
+                startNewGameButton.addEventListener('click', fullApplicationReset);
             }
         }
 
@@ -1893,6 +1886,7 @@
                         timerDisplay.classList.remove('timer-paused', 'timer-ended');
                         timerDisplay.classList.add('timer-running');
                     }
+                    // ボタンの状態を一時停止中に戻す
                     if(timerControlsActive && !timerControlsActive.classList.contains('hidden')) {
                         if(startButtonActive) startButtonActive.disabled = false;
                         if(pauseButton) pauseButton.disabled = true;
@@ -1914,13 +1908,14 @@
                 });
             }
             
+            // 「リザルト入力へ進む」ボタンの処理
             if(proceedToResultButton) {
                 proceedToResultButton.addEventListener('click', () => {
                     setupScorePageUI(matchEndType);
                 });
             }
 
-            // ★変更点: 全てのselect要素にtouchmoveイベントリスナーを追加してスクロールを防止
+            // モバイル端末でプルダウンを操作した際に、背景がスクロールしてしまうのを防ぐ
             const allSelects = document.querySelectorAll('select');
             allSelects.forEach(select => {
                 select.addEventListener('touchmove', (event) => {
@@ -1942,6 +1937,7 @@
                     }
                 });
             }
+            // 全画面の状態が変わったときにボタンのテキストを変更
             document.addEventListener('fullscreenchange', () => {
                 if(fullscreenButton) {
                     if (document.fullscreenElement) {

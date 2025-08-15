@@ -37,7 +37,6 @@
             margin-bottom: 15px; /* 下の余白 */
         }
 
-
         /* --- チーム選択エリア --- */
         .team-selection-container {
             margin-bottom: 20px; /* 下の余白 */
@@ -94,7 +93,6 @@
         .timer-ended { color: #dc2626; } /* 赤色 - 終了時 */
         .timer-running { color: #1d4ed8; } /* 青色 - 実行中/リセット時 */
 
-
         /* --- ボール配置表示 --- */
         .arrangement-container {
             display: flex;
@@ -131,7 +129,6 @@
         }
         .inner-circle.orange { background-color: orange; }
         .inner-circle.purple { background-color: purple; }
-
 
         /* --- ボタン共通スタイル --- */
         .button-group {
@@ -229,7 +226,6 @@
              padding: 8px; background-color: #eef2ff; border-radius: 6px;
         }
         #intermediateMatchWinnerDisplay { font-size: 1.5rem; font-weight: bold; margin-top: 15px; margin-bottom: 15px; }
-
 
         /* --- 最終結果表示ページ --- */
         .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; } 

@@ -557,28 +557,7 @@
         let confirmedTeamB = ""; // 確定したチームBの内部ID
         let confirmedTeamADisplay = ""; // 確定したチームAの表示名
         let confirmedTeamBDisplay = ""; // 確定したチームBの表示名
-        
-        // ★変更点: CSVから読み込む代わりに、チームリストを直接コードに記述する
-        const teamListFromCsv = [
-            { value: '1', text: '1 - 夙川第三世代' },
-            { value: '2', text: '2 - うなぎRO' },
-            { value: '3', text: '3 - SPEED' },
-            { value: '4', text: '4 - Tezukayamaの森' },
-            { value: '5', text: '5 - Ousho' },
-            { value: '6', text: '6 - SS' },
-            { value: '7', text: '7 - なんでもいい' },
-            { value: '8', text: '8 - 月島ダイナソー' },
-            { value: '9', text: '9 - Assassin' },
-            { value: '10', text: '10 - フローライト' },
-            { value: '11', text: '11 - PK4' },
-            { value: '12', text: '12 - 土曜出勤@spike信者' },
-            { value: '13', text: '13 - むしくん' },
-            { value: '14', text: '14 - いわし　にんじん　マヨネーズ' },
-            { value: '15', text: '15 - すっしーず' },
-            { value: '16', text: '16 - ロマン砲・Ω' },
-            { value: '17', text: '17 - SKY1' },
-            { value: '18', text: '18 - BLUE1' }
-        ];
+        let teamListFromCsv = []; // CSVから読み込んだチームのリスト（{value: '1', text: '1 - チーム名'} の形式）
         let matchesData = []; // 各マッチの結果を格納する配列。インデックスが (マッチ番号 - 1) に対応。
 
         // 反則（自動で相手の得点になり、違反回数にカウントされる）と見なされる理由のリスト
@@ -769,7 +748,7 @@
         // ===================================================================================
 
         /**
-         * チーム選択のUIをセットアップする。
+         * CSVからチームリストが読み込まれた後に、チーム選択のUIをセットアップする。
          */
         function initializeTeamSelectionUI() { 
             // 動的に生成されたHTML要素を再度取得
@@ -783,7 +762,7 @@
                 return;
             }
             
-            // ハードコードされたチームリストをプルダウンに設定
+            // CSVから読み込んだチームリストをプルダウンに設定
             populateSelectWithOptions(teamASelect, 0, true, teamListFromCsv); 
             populateSelectWithOptions(teamBSelect, 0, true, teamListFromCsv);
 
@@ -895,16 +874,46 @@
             confirmedTeamB = "";
             confirmedTeamADisplay = "";
             confirmedTeamBDisplay = "";
+            teamListFromCsv = []; 
+
+            // UIを初期状態に戻す
+            if(csvFileInput) csvFileInput.value = ""; // ファイル選択をクリア
+            const csvUploadContainer = document.getElementById('csvUploadContainer'); 
+            if (csvUploadContainer) {
+                 csvUploadContainer.classList.remove('hidden'); // CSVアップロードエリアを表示
+            }
+            if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.add('hidden'); // チーム選択エリアを非表示
             
             resetMatchSpecificUIData(); 
             initializeScoreSelects(); 
 
-            // チーム選択UIを直接初期化する
-            initializeTeamSelectionUI();
-
             // 最初のチーム選択ページを表示
             showPage(universalTeamSelectionPage);
         }
+
+        /**
+         * CSVから読み込んだチームリストを保持したまま、新しい試合を開始する。
+         * (全体リセットとは異なり、再度CSVを読み込む手間を省く)
+         */
+        function resetForNewGameWithSameCsv() { 
+            currentMatchNumber = 1;
+            matchesData = [];
+            
+            resetMatchSpecificUIData();
+            initializeScoreSelects(); 
+
+            // チーム選択UIを再表示・初期化
+            const csvUploadContainer = document.getElementById('csvUploadContainer');
+            if (universalTeamSelectionPage && csvUploadContainer && teamSelectDropdownsContainer) {
+                csvUploadContainer.classList.add('hidden'); // CSVアップロードは隠す
+                initializeTeamSelectionUI(); // チーム選択プルダウンを再設定
+                showPage(universalTeamSelectionPage); // チーム選択ページを表示
+            } else {
+                console.error("Cannot reset to team selection: universal page or containers not found.");
+                fullApplicationReset(); // 何か問題があれば完全リセット
+            }
+        }
+
 
         // ===================================================================================
         // --- Team Selection Logic (チーム選択のロジック) ---
@@ -1480,10 +1489,6 @@
             let gameTotalPurpleBallsTeamA = 0;
             let gameTotalOrangeBallsTeamB = 0;
             let gameTotalPurpleBallsTeamB = 0;
-            // ★変更点: マッチごとの得点を合計するための変数を追加
-            let gameTotalScoreTeamA = 0;
-            let gameTotalScoreTeamB = 0;
-
 
             // 3マッチ分のデータをループして集計 & テーブル描画
             for (let i = 0; i < TOTAL_MATCHES; i++) {
@@ -1523,10 +1528,6 @@
                     if (teamBOrange !== undefined && teamBPurple !== undefined) { teamBScore = teamBOrange - (teamBPurple * 2); }
                 }
                 
-                // ★変更点: 各マッチのスコアを合計に加算
-                if (teamAScore !== null) gameTotalScoreTeamA += teamAScore;
-                if (teamBScore !== null) gameTotalScoreTeamB += teamBScore;
-
                 // 勝利数を集計
                 if (match.winner === confirmedTeamA) { gameTotalWinsTeamA++; }
                 else if (match.winner === confirmedTeamB) { gameTotalWinsTeamB++; }
@@ -1574,11 +1575,12 @@
                     overallWinner = confirmedTeamBDisplay;
                     winReasonText = "[総違反回数]";
                 } else { // 違反回数も同じ場合
-                    // ★変更点: 総合スコアの判定を、合計したマッチごとの得点で行う
-                    if (gameTotalScoreTeamA < gameTotalScoreTeamB) { // スコアは小さい方が勝ち
+                    const overallScoreTeamA = gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2);
+                    const overallScoreTeamB = gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2);
+                    if (overallScoreTeamA < overallScoreTeamB) { // スコアは小さい方が勝ち
                         overallWinner = confirmedTeamADisplay;
                         winReasonText = "[総ボールスコア]";
-                    } else if (gameTotalScoreTeamB < gameTotalScoreTeamA) {
+                    } else if (overallScoreTeamB < overallScoreTeamA) {
                         overallWinner = confirmedTeamBDisplay;
                         winReasonText = "[総ボールスコア]";
                     } else { // スコアも同じ場合は引き分け
@@ -1609,8 +1611,7 @@
                                 <td>${gameTotalFoulsTeamA}</td>
                                 <td>${gameTotalOrangeBallsTeamA}</td>
                                 <td>${gameTotalPurpleBallsTeamA}</td>
-                                <!-- ★変更点: 表示するスコアを、合計したマッチごとの得点に変更 -->
-                                <td>${gameTotalScoreTeamA}</td>
+                                <td>${gameTotalOrangeBallsTeamA - (gameTotalPurpleBallsTeamA * 2)}</td>
                             </tr>
                             <tr id="summaryRowTeamB">
                                 <td id="summaryNameTeamB">${confirmedTeamBDisplay}</td>
@@ -1618,8 +1619,7 @@
                                 <td>${gameTotalFoulsTeamB}</td>
                                 <td>${gameTotalOrangeBallsTeamB}</td>
                                 <td>${gameTotalPurpleBallsTeamB}</td>
-                                <!-- ★変更点: 表示するスコアを、合計したマッチごとの得点に変更 -->
-                                <td>${gameTotalScoreTeamB}</td>
+                                <td>${gameTotalOrangeBallsTeamB - (gameTotalPurpleBallsTeamB * 2)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1665,12 +1665,17 @@
          * これにより、初期HTMLをシンプルに保つことができる。
          */
         function injectMissingHTML() {
-            // ★変更点: CSVアップロード機能を削除し、チーム選択のみのHTMLを挿入
+            // チーム選択ページの中身が空の場合にHTMLを挿入
             if (universalTeamSelectionPage && universalTeamSelectionPage.children.length === 0) {
                  const teamSelectionHTML = `
                     <div class="team-selection-container">
                         <h2 class="section-title">対戦チーム選択</h2>
-                        <div id="teamSelectDropdownsContainer">
+                        <div class="csv-upload-container" id="csvUploadContainer">
+                            <label for="csvFileInput" class="block mb-2 text-sm font-medium text-gray-900">チームリストCSVファイル (1列目: チーム番号, 2列目: チーム名):</label>
+                            <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                            <button id="loadCsvButton" class="btn btn-primary mt-2">CSV読み込み</button>
+                        </div>
+                        <div id="teamSelectDropdownsContainer" class="hidden">
                             <div class="team-select-group">
                                 <label for="teamASelectInternal">審判左手:</label>
                                 <select id="teamASelectInternal"><option value="">チームを選択</option></select>
@@ -1683,7 +1688,53 @@
                         </div>
                     </div>`;
                 universalTeamSelectionPage.innerHTML = teamSelectionHTML;
+                // 挿入した要素を取得してイベントリスナーを設定
+                csvFileInput = document.getElementById('csvFileInput');
+                loadCsvButton = document.getElementById('loadCsvButton');
                 teamSelectDropdownsContainer = document.getElementById('teamSelectDropdownsContainer');
+                if(loadCsvButton) loadCsvButton.addEventListener('click', () => { 
+                    if (csvFileInput && csvFileInput.files && csvFileInput.files.length > 0) {
+                        const file = csvFileInput.files[0];
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const csvData = event.target.result;
+                            try {
+                                const lines = csvData.split(/\r\n|\n/); 
+                                teamListFromCsv = []; 
+                                lines.forEach(line => {
+                                    const columns = line.split(','); 
+                                    if (columns[0] && columns[0].trim() !== "" && columns[1] && columns[1].trim() !== "") { 
+                                        const teamNumber = columns[0].trim();
+                                        const teamName = columns[1].trim();
+                                        teamListFromCsv.push({ value: teamNumber, text: `${teamNumber} - ${teamName}` });
+                                    }
+                                });
+                                if (teamListFromCsv.length > 0) {
+                                    initializeTeamSelectionUI(); 
+                                    const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
+                                    if(displayEl) displayEl.textContent = "CSVからチームを読み込みました。対戦チームを選択してください。";
+                                    if(document.getElementById('csvUploadContainer')) document.getElementById('csvUploadContainer').classList.add('hidden');
+                                } else {
+                                     const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
+                                    if(displayEl) displayEl.textContent = "CSVファイルに有効なチーム情報（番号と名前）がありません。";
+                                }
+                            } catch (error) {
+                                console.error("CSVパースエラー:", error);
+                                const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
+                                if(displayEl) displayEl.textContent = "CSVファイルの読み込みに失敗しました。";
+                            }
+                        };
+                        reader.onerror = function() {
+                            console.error("ファイル読み込みエラー");
+                             const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
+                            if(displayEl) displayEl.textContent = "ファイル読み込み中にエラーが発生しました。";
+                        };
+                        reader.readAsText(file, 'UTF-8'); 
+                    } else {
+                         const displayEl = document.getElementById('selectedTeamsDisplayInternal') || selectedTeamsDisplay;
+                        if(displayEl) displayEl.textContent = "CSVファイルを選択してください。";
+                    }
+                });
             }
             // スコア入力ページの中身が空の場合にHTMLを挿入
             if (scoreInputPage && scoreInputPage.children.length === 0) {
@@ -1853,8 +1904,14 @@
             summaryStatsContainer = document.getElementById('summaryStatsContainer'); 
             overallWinnerDisplay = document.getElementById('overallWinnerDisplay');
             if(startNewGameButton) {
-                // ★変更点: 新しい試合の開始処理を簡略化
-                startNewGameButton.addEventListener('click', fullApplicationReset);
+                startNewGameButton.addEventListener('click', () => {
+                    // CSVデータが残っていればそれを使い、なければ完全リセット
+                    if (teamListFromCsv && teamListFromCsv.length > 0) {
+                        resetForNewGameWithSameCsv();
+                    } else {
+                        fullApplicationReset();
+                    }
+                });
             }
         }
 

@@ -1,4 +1,4 @@
- /* --- 全体スタイル --- */
+        /* --- 画面全体の基本スタイル --- */
         body {
             font-family: 'Inter', sans-serif; /* フォント指定 */
             display: flex; /* Flexboxレイアウトを有効化 */
@@ -21,9 +21,9 @@
             max-width: 700px; /* 最大幅を指定し、大きな画面でも見やすくする */
             text-align: center; /* テキストを中央揃えにする */
         }
-        .page { width: 100%; } /* 各ページの共通スタイル */
+        .page { width: 100%; } /* 各ページ共通 */
 
-        /* --- マッチタイトル表示 --- */
+        /* --- 見出し表示 --- */
         .match-title-display {
             font-size: 2.25rem; /* 文字サイズ (36px) */
             font-weight: bold; /* 太字 */
@@ -130,7 +130,7 @@
         .inner-circle.orange { background-color: orange; }
         .inner-circle.purple { background-color: purple; }
 
-        /* --- ボタン共通スタイル --- */
+        /* --- ボタン共通 --- */
         .button-group {
             display: flex; flex-wrap: wrap; justify-content: center;
             gap: 10px; margin-bottom: 20px;
@@ -157,7 +157,7 @@
             background-color: #9ca3af; color: #e5e7eb; cursor: not-allowed;
         }
 
-        /* --- 各セクションコンテナ --- */
+        /* --- 各セクションのコンテナ --- */
         .status-handling-container {
             border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;
         }
@@ -175,21 +175,12 @@
             background-color: #d1fae5; color: #065f46; font-weight: bold;
         }
         
-        /* --- タイムアウト時・手動終了時の情報エリア --- */
-        #timeoutInfoContainer { margin-top: 15px; }
+        /* --- 手動終了時の入力エリア --- */
         #manualEndReasonContainer .team-select-group { 
             margin-bottom: 15px; 
         }
 
         /* --- ボール数入力ページ --- */
-        #selectedStatusOnScorePage { 
-            font-size: 1.1rem; 
-            font-weight: 500; 
-            color: #1f2937; 
-            background-color: #f3f4f6; 
-            padding: 10px 15px;
-            border-radius: 8px; margin-bottom: 20px;
-        }
         .score-input-area { 
             display: flex; justify-content: space-around; gap: 20px; margin-top: 10px;
         }
@@ -212,15 +203,13 @@
             background-color: #e5e7eb; 
         }
         .next-match-btn-container button { margin-top: 20px; } 
+        .central-ball-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
 
         /* --- 中間結果表示ページ --- */
-        #intermediateMatchResultTable { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        #intermediateMatchResultTable th, #intermediateMatchResultTable td {
-            border: 2px solid #000000; 
-            padding: 8px 12px; text-align: left;
-            font-size: 1.25rem; 
-        }
-        #intermediateMatchResultTable th { background-color: #f3f4f6; font-weight: 600; }
         #intermediateMatchStatusDisplay { 
              font-size: 1.1rem; font-weight: 500; margin-bottom: 10px;
              padding: 8px; background-color: #eef2ff; border-radius: 6px;
@@ -237,7 +226,7 @@
         .results-table th { background-color: #f3f4f6; font-weight: 600; } 
         .results-teams-display { font-size: 1.2rem; font-weight: bold; margin-bottom:15px; } 
         
-        /* 勝者や引き分けのセルをハイライト表示するためのスタイル */
+        /* 勝者・引き分けセルの強調表示 */
         .highlight-winner-cell { 
             background-color: #dcfce7; /* 勝者: 薄い緑 */
         }
@@ -272,7 +261,7 @@
              background-color: #fecaca; /* 総合引き分けのチーム名のハイライト */
              font-weight: bold;
         }
-        /* --- 確認モーダル (確認ダイアログ) --- */
+        /* --- 確認モーダル --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; /* 画面全体を覆う */
             width: 100%; height: 100%;
@@ -299,5 +288,5 @@
             margin-top: 20px;
         }
 
-        /* --- 要素を非表示にするためのユーティリティクラス --- */
+        /* --- 非表示ユーティリティ --- */
         .hidden { display: none !important; }

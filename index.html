@@ -256,7 +256,7 @@
         const MAX_ORANGE_BALLS_MOVED = 9; // 中央ボールが動いた場合のオレンジボール最大数
         const MAX_PURPLE_BALLS = 2; // 紫ボールの最大数
         const MATCH_MODE_STORAGE_KEY = 'robosportsMatchMode'; // モード選択の保存キー
-        const MATCH_MODES = Object.freeze({ PRELIMINARY: "予選", FINAL: "決勝" });
+        const MATCH_MODES = Object.freeze({ PRELIMINARY: "引き分け有り", FINAL: "引き分け無" });
         const MATCH_END_TYPES = Object.freeze({ TIMEOUT: "timeout", MANUAL: "manual", EDIT: "edit" });
         const CENTRAL_BALL_STATES = Object.freeze({ MOVED: "moved", STILL: "still" });
         const MATCH_STATUS_TIMEOUT = "タイムアップ";
@@ -280,7 +280,7 @@
         let confirmedTeamB = ""; // 確定したチームBの内部ID
         let confirmedTeamADisplay = ""; // 確定したチームAの表示名
         let confirmedTeamBDisplay = ""; // 確定したチームBの表示名
-        let selectedMatchMode = MATCH_MODES.PRELIMINARY; // 現在のモード選択（"予選" | "決勝" | ""）
+        let selectedMatchMode = MATCH_MODES.FINAL; // 現在のモード選択（"引き分け有り" | "引き分け無" | ""）
         let teamListFromCsv = []; // CSVから読み込んだチームのリスト（{value: '1', text: '1 - チーム名'} の形式）
         /**
          * 各マッチの結果を格納する配列。インデックスは (マッチ番号 - 1)。
@@ -654,7 +654,7 @@
              teamBSelect.addEventListener('change', handleTeamSelectionChange);
              confirmTeamsButton.addEventListener('click', () => {
                 if (!isMatchModeSelected()) {
-                    setTeamSelectionMessage("モード（予選/決勝）を選択してください");
+                    setTeamSelectionMessage("モード（引き分け無/引き分け有り）を選択してください");
                     return;
                 }
 
@@ -812,7 +812,7 @@
             const teamBText = teamBSelect.options[teamBSelect.selectedIndex].text;
 
             if (!isMatchModeSelected()) {
-                selectedTeamsDisplay.textContent = "モード（予選/決勝）を選択してください";
+                selectedTeamsDisplay.textContent = "モード（引き分け無/引き分け有り）を選択してください";
                 selectedTeamsDisplay.style.color = "orange";
                 confirmTeamsButton.disabled = true;
                 return;
@@ -964,19 +964,19 @@
 
         /**
          * 前回選択された試合モードをlocalStorageから復元する。
-         * 不正値や読み込み失敗時は予選モードに戻す。
+         * 不正値や読み込み失敗時は引き分け無モードに戻す。
          */
         function loadSelectedMatchMode() {
             try {
                 const saved = localStorage.getItem(MATCH_MODE_STORAGE_KEY);
                 if (saved === MATCH_MODES.PRELIMINARY || saved === MATCH_MODES.FINAL || saved === "") {
-                    selectedMatchMode = saved || MATCH_MODES.PRELIMINARY;
+                    selectedMatchMode = saved || MATCH_MODES.FINAL;
                     return;
                 }
             } catch (e) {
                 console.error("モード選択の読み込みに失敗:", e);
             }
-            selectedMatchMode = MATCH_MODES.PRELIMINARY;
+            selectedMatchMode = MATCH_MODES.FINAL;
         }
 
         /**
@@ -1000,7 +1000,7 @@
         }
 
         /**
-         * 状態変数 selectedMatchMode を、予選/決勝チェックボックスの見た目へ反映する。
+         * 状態変数 selectedMatchMode を、引き分け有り/引き分け無チェックボックスの見た目へ反映する。
          */
         function syncModeCheckboxesFromState() {
             if (prelimModeCheckbox) prelimModeCheckbox.checked = selectedMatchMode === MATCH_MODES.PRELIMINARY;
@@ -1665,7 +1665,7 @@
             let winReasonText = "";
 
             if (selectedMatchMode === MATCH_MODES.PRELIMINARY) {
-                // 予選は勝利マッチ数のみで総合勝者を判定
+                // 引き分け有りは勝利マッチ数のみで総合勝者を判定
                 if (gameTotalWinsTeamA > gameTotalWinsTeamB) {
                     overallWinner = confirmedTeamADisplay;
                     winReasonText = "[勝利マッチ数]";
@@ -1676,7 +1676,7 @@
                     overallDraw = true;
                 }
             } else {
-                // 決勝は既存ロジック（勝利数 -> 違反回数 -> 総ボールスコア）
+                // 引き分け無は既存ロジック（勝利数 -> 違反回数 -> 総ボールスコア）
                 if (gameTotalWinsTeamA > gameTotalWinsTeamB) {
                     overallWinner = confirmedTeamADisplay;
                     winReasonText = "[勝利マッチ数]";
@@ -1870,13 +1870,13 @@
                             </div>
                             <div class="section-title mt-2 mb-1">モード選択</div>
                             <div class="team-select-group" style="justify-content: center; gap: 24px;">
-                                <label for="prelimModeCheckbox" style="display:flex; align-items:center; gap:8px;">
-                                    <input type="checkbox" id="prelimModeCheckbox" class="central-ball-checkbox">
-                                    予選
-                                </label>
                                 <label for="finalModeCheckbox" style="display:flex; align-items:center; gap:8px;">
                                     <input type="checkbox" id="finalModeCheckbox" class="central-ball-checkbox">
-                                    決勝
+                                    引き分け無
+                                </label>
+                                <label for="prelimModeCheckbox" style="display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" id="prelimModeCheckbox" class="central-ball-checkbox">
+                                    引き分け有り
                                 </label>
                             </div>
                             <div id="selectedTeamsDisplayInternal">チームを選択してください</div>

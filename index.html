@@ -254,6 +254,8 @@
         const MAX_ORANGE_BALLS_MOVED = 9; // 中央ボールが動いた場合の総数
         const MAX_PURPLE_BALLS = 2; // 両チームを合わせた紫ボールの総数
         const MATCH_MODE_STORAGE_KEY = 'robosportsMatchMode'; // モードをブラウザに保存する際のキー
+        const USE_FIXED_TEAM_LIST = true; // 一時的にCSVアップロードを無効化し、同梱CSVを使用する
+        const FIXED_TEAM_LIST_CSV_PATH = './teamlist_nara.csv'; // 自動読み込みするチームリスト
         // PRELIMINARY/FINALは旧名称の内部キー。値は現在の画面表示と判定方法に対応する。
         const MATCH_MODES = Object.freeze({ PRELIMINARY: "引き分け有り", FINAL: "引き分け無" });
         const MATCH_END_TYPES = Object.freeze({ TIMEOUT: "timeout", MANUAL: "manual", EDIT: "edit" });
@@ -646,9 +648,9 @@
             if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.remove('hidden');
 
              // 組み合わせの検証と確定処理を登録する
-             teamASelect.addEventListener('change', handleTeamSelectionChange);
-             teamBSelect.addEventListener('change', handleTeamSelectionChange);
-             confirmTeamsButton.addEventListener('click', () => {
+             teamASelect.onchange = handleTeamSelectionChange;
+             teamBSelect.onchange = handleTeamSelectionChange;
+             confirmTeamsButton.onclick = () => {
                 if (!isMatchModeSelected()) {
                     setTeamSelectionMessage("モード（引き分け無/引き分け有り）を選択してください");
                     return;
@@ -674,7 +676,7 @@
 
                 // 第1マッチの初期ボール配置を生成する
                 displayBallArrangement();
-            });
+            };
         }
         
         /**
@@ -742,31 +744,41 @@
         }
 
         /**
-         * 読み込んだCSVを含む対戦データを破棄し、最初の画面へ戻す。
+         * 対戦データを破棄し、固定チームリストの選択画面へ戻す。
+         * CSVアップロードを再開した場合は、従来どおりファイル選択画面へ戻す。
          */
         function fullApplicationReset() { 
-            // 対戦チーム、全マッチの結果、CSV一覧を破棄する
+            // 対戦チームと全マッチの結果を破棄する
             currentMatchNumber = 1;
             matchesData = [];
             confirmedTeamA = "";
             confirmedTeamB = "";
             confirmedTeamADisplay = "";
             confirmedTeamBDisplay = "";
-            teamListFromCsv = []; 
 
-            // CSV読み込み欄だけを表示した初期状態へ戻す
-            if(csvFileInput) csvFileInput.value = "";
             const csvUploadContainer = document.getElementById('csvUploadContainer'); 
-            if (csvUploadContainer) {
-                 csvUploadContainer.classList.remove('hidden');
-            }
-            if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.add('hidden');
-            
             resetMatchSpecificUIData(); 
             initializeScoreSelects(); 
-
-            // タイトルと全体リセットもshowPage()内で再表示される
             showPage(universalTeamSelectionPage);
+
+            if (USE_FIXED_TEAM_LIST) {
+                // 固定CSVは初回だけ取得し、以降のリセットでは読み込み済み一覧を再利用する
+                if (csvUploadContainer) csvUploadContainer.classList.add('hidden');
+                if (teamListFromCsv.length > 0) {
+                    initializeTeamSelectionUI();
+                    updateFixedTeamListStatus(`${teamListFromCsv.length}チームから選択できます。`, false);
+                } else {
+                    if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.add('hidden');
+                    loadFixedTeamList();
+                }
+                return;
+            }
+
+            // 固定CSV使用を解除したときは、従来のアップロード画面へ戻す
+            teamListFromCsv = [];
+            if(csvFileInput) csvFileInput.value = "";
+            if(csvUploadContainer) csvUploadContainer.classList.remove('hidden');
+            if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.add('hidden');
         }
 
         /**
@@ -1765,8 +1777,8 @@
 
         /**
          * CSVの各行からチーム番号とチーム名を取り出し、選択肢用データへ変換する。
-         * 1列目をチーム番号、2列目をチーム名として扱い、どちらかが空の行は無視する。
-         * @param {string} csvData - FileReaderで読み込んだCSV文字列。
+         * 1列目をチーム番号、2列目をチーム名として扱い、見出し行や空欄は無視する。
+         * @param {string} csvData - UTF-8で読み込んだCSV文字列。
          * @returns {{value: string, text: string}[]} selectへ投入できるチーム情報。
          */
         function parseTeamCsv(csvData) {
@@ -1776,13 +1788,50 @@
             lines.forEach(line => {
                 const columns = line.split(',');
                 if (columns[0] && columns[0].trim() !== "" && columns[1] && columns[1].trim() !== "") {
-                    const teamNumber = columns[0].trim();
+                    const teamNumber = columns[0].replace(/^\uFEFF/, '').trim();
                     const teamName = columns[1].trim();
+                    if (teamNumber === 'チーム番号' && teamName === 'チーム名') return;
                     parsedTeams.push({ value: teamNumber, text: `${teamNumber} - ${teamName}` });
                 }
             });
 
             return parsedTeams;
+        }
+
+        /**
+         * 固定チームリストの読み込み状態をチーム選択画面へ表示する。
+         */
+        function updateFixedTeamListStatus(message, isError) {
+            const status = document.getElementById('fixedTeamListStatus');
+            if (!status) return;
+            status.textContent = message;
+            status.style.color = isError ? 'red' : '';
+        }
+
+        /**
+         * 同梱の奈良大会用CSVを取得し、チーム選択欄へ反映する。
+         */
+        async function loadFixedTeamList() {
+            updateFixedTeamListStatus('奈良大会チームリストを読み込んでいます...', false);
+
+            try {
+                const response = await fetch(FIXED_TEAM_LIST_CSV_PATH, { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                teamListFromCsv = parseTeamCsv(await response.text());
+                if (teamListFromCsv.length === 0) {
+                    throw new Error('有効なチーム情報がありません');
+                }
+
+                initializeTeamSelectionUI();
+                updateFixedTeamListStatus(`${teamListFromCsv.length}チームから選択できます。`, false);
+            } catch (error) {
+                console.error('固定チームリスト読み込みエラー:', error);
+                if(teamSelectDropdownsContainer) teamSelectDropdownsContainer.classList.add('hidden');
+                updateFixedTeamListStatus('チームリストを読み込めませんでした。ページを再読み込みしてください。', true);
+            }
         }
 
         /**
@@ -1834,12 +1883,13 @@
          * 空のチーム選択ページとリザルト入力ページへ、必要な画面要素を一度だけ生成する。
          */
         function injectMissingHTML() {
-            // チーム選択画面はCSV入力と対戦設定をまとめて生成する
+            // チーム選択画面は固定CSVの状態、CSV入力、対戦設定をまとめて生成する
             if (universalTeamSelectionPage && universalTeamSelectionPage.children.length === 0) {
                  const teamSelectionHTML = `
                     <div class="team-selection-container">
                         <h2 class="section-title">対戦チーム選択</h2>
-                        <div class="csv-upload-container" id="csvUploadContainer">
+                        <div id="fixedTeamListStatus" class="mb-4${USE_FIXED_TEAM_LIST ? '' : ' hidden'}" aria-live="polite">奈良大会チームリストを読み込んでいます...</div>
+                        <div class="csv-upload-container${USE_FIXED_TEAM_LIST ? ' hidden' : ''}" id="csvUploadContainer">
                             <label for="csvFileInput" class="block mb-2 text-sm font-medium text-gray-900">チームリストCSVファイル (1列目: チーム番号, 2列目: チーム名):</label>
                             <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
                             <button id="loadCsvButton" class="btn btn-primary mt-2">CSV読み込み</button>
@@ -2259,7 +2309,7 @@
             }
             document.addEventListener('fullscreenchange', updateFullscreenButtonText);
             
-            // 4. CSV読み込み前の画面を表示する
+            // 4. 固定CSVを読み込み、チーム選択画面を表示する
             fullApplicationReset(); 
         };
     </script>

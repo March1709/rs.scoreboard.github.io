@@ -1307,28 +1307,12 @@
                 matchData.isPenaltyFixedScore = isPenalty;
                 matchData.penaltyLosingTeam = (isCold || isPenalty) ? teamValue : "";
 
-                // コールド勝利では中央ボールを「動いた」に固定する
-                if (isCold) {
-                    if (centralBallMovedCheckbox) {
-                        centralBallMovedCheckbox.checked = true;
-                        centralBallMovedCheckbox.disabled = true;
-                    }
-                    if (centralBallNotMovedCheckbox) {
-                        centralBallNotMovedCheckbox.checked = false;
-                        centralBallNotMovedCheckbox.disabled = true;
-                    }
-                    // 編集画面で復元できるよう、強制した状態も保存する
-                    matchData.centralBallState = CENTRAL_BALL_STATES.MOVED;
-                    // checkedの代入ではchangeが発生しないため、入力範囲を直接更新する
-                    updateOrangeBallSelectOptions();
-                } else {
-                    // 別の理由へ変更した場合は中央ボールを再び操作可能にする
-                    if (centralBallMovedCheckbox) {
-                        centralBallMovedCheckbox.disabled = false;
-                    }
-                    if (centralBallNotMovedCheckbox) {
-                        centralBallNotMovedCheckbox.disabled = false;
-                    }
+                // 終了理由にかかわらず、中央ボールは審判が実際の状態を選択する
+                if (centralBallMovedCheckbox) {
+                    centralBallMovedCheckbox.disabled = false;
+                }
+                if (centralBallNotMovedCheckbox) {
+                    centralBallNotMovedCheckbox.disabled = false;
                 }
 
                 updateScoreInputsLockState();
@@ -1344,7 +1328,7 @@
                 matchData.isPenaltyFixedScore = false;
                 matchData.penaltyLosingTeam = "";
 
-                // 前の理由で強制された中央ボール状態も解除する
+                // 終了対象が未確定に戻ったため、中央ボールの選択もクリアする
                 if (centralBallMovedCheckbox) {
                     centralBallMovedCheckbox.disabled = false;
                     centralBallMovedCheckbox.checked = false;

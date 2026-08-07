@@ -576,6 +576,29 @@
             updateOrangeBallSelectOptions();
             updateScoreInputsLockState();
         }
+
+        /**
+         * コールド勝利では中央ボールを「動いた」に固定する。
+         * それ以外の終了理由では、審判が通常どおり選択できる状態に戻す。
+         * @param {string} reasonValue - 選択中の終了理由。
+         */
+        function updateCentralBallConstraintsForEndReason(reasonValue) {
+            const isCold = reasonValue === END_REASON_COLD_GAME;
+
+            if (centralBallMovedCheckbox) {
+                if (isCold) centralBallMovedCheckbox.checked = true;
+                centralBallMovedCheckbox.disabled = isCold;
+            }
+            if (centralBallNotMovedCheckbox) {
+                if (isCold) centralBallNotMovedCheckbox.checked = false;
+                centralBallNotMovedCheckbox.disabled = isCold;
+            }
+
+            if (isCold) {
+                getCurrentMatchData().centralBallState = CENTRAL_BALL_STATES.MOVED;
+                updateOrangeBallSelectOptions();
+            }
+        }
         
         /**
          * 手動終了理由の選択肢を通常終了と自動敗北に分けて生成する。
@@ -1289,12 +1312,14 @@
          * 手動終了の対象チームと理由を現在マッチへ保存し、理由固有の入力制御を適用する。
          */
         function checkManualEndReasonSelection() {
+            const selectedReasonValue = endReasonSelect?.value || "";
+            const isColdReasonSelected = selectedReasonValue === END_REASON_COLD_GAME;
+            updateCentralBallConstraintsForEndReason(selectedReasonValue);
+
             if (endedByTeamSelect && endReasonSelect && endedByTeamSelect.value && endReasonSelect.value) {
-                const scoreSelects = getScoreSelects();
                 // 表示用ステータスと判定用フラグを同時に更新する
                 const teamValue = endedByTeamSelect.value;
-                const reasonOption = endReasonSelect.options[endReasonSelect.selectedIndex];
-                const reasonValue = reasonOption.value;
+                const reasonValue = selectedReasonValue;
                 const teamText = endedByTeamSelect.options[endedByTeamSelect.selectedIndex].text;
                 const statusText = `${teamText} - ${reasonValue}`;
                 
@@ -1306,14 +1331,6 @@
                 matchData.isColdGame = isCold;
                 matchData.isPenaltyFixedScore = isPenalty;
                 matchData.penaltyLosingTeam = (isCold || isPenalty) ? teamValue : "";
-
-                // 終了理由にかかわらず、中央ボールは審判が実際の状態を選択する
-                if (centralBallMovedCheckbox) {
-                    centralBallMovedCheckbox.disabled = false;
-                }
-                if (centralBallNotMovedCheckbox) {
-                    centralBallNotMovedCheckbox.disabled = false;
-                }
 
                 updateScoreInputsLockState();
             } else {
@@ -1328,16 +1345,12 @@
                 matchData.isPenaltyFixedScore = false;
                 matchData.penaltyLosingTeam = "";
 
-                // 終了対象が未確定に戻ったため、中央ボールの選択もクリアする
-                if (centralBallMovedCheckbox) {
-                    centralBallMovedCheckbox.disabled = false;
-                    centralBallMovedCheckbox.checked = false;
+                // コールド勝利の固定値は対象チーム選択前でも保ち、それ以外はクリアする
+                if (!isColdReasonSelected) {
+                    if (centralBallMovedCheckbox) centralBallMovedCheckbox.checked = false;
+                    if (centralBallNotMovedCheckbox) centralBallNotMovedCheckbox.checked = false;
+                    matchData.centralBallState = "";
                 }
-                if (centralBallNotMovedCheckbox) {
-                    centralBallNotMovedCheckbox.disabled = false;
-                    centralBallNotMovedCheckbox.checked = false;
-                }
-                matchData.centralBallState = "";
 
                 if(proceedToNextPhaseButton) proceedToNextPhaseButton.disabled = true;
             }

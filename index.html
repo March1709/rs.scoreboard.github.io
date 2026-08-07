@@ -257,7 +257,7 @@
         const USE_FIXED_TEAM_LIST = true; // 一時的にCSVアップロードを無効化し、同梱CSVを使用する
         const FIXED_TEAM_LIST_CSV_PATH = './teamlist_nara.csv'; // 自動読み込みするチームリスト
         // PRELIMINARY/FINALは旧名称の内部キー。値は現在の画面表示と判定方法に対応する。
-        const MATCH_MODES = Object.freeze({ PRELIMINARY: "引き分け有り", FINAL: "引き分け無" });
+        const MATCH_MODES = Object.freeze({ PRELIMINARY: "引き分け有", FINAL: "引き分け無" });
         const MATCH_END_TYPES = Object.freeze({ TIMEOUT: "timeout", MANUAL: "manual", EDIT: "edit" });
         const CENTRAL_BALL_STATES = Object.freeze({ MOVED: "moved", STILL: "still" });
         const MATCH_STATUS_TIMEOUT = "タイムアップ";
@@ -281,7 +281,7 @@
         let confirmedTeamB = ""; // チームBの内部ID（CSVのチーム番号）
         let confirmedTeamADisplay = ""; // チームAの画面表示名
         let confirmedTeamBDisplay = ""; // チームBの画面表示名
-        let selectedMatchMode = MATCH_MODES.FINAL; // 選択中の引き分けモード。空文字は未選択
+        let selectedMatchMode = MATCH_MODES.PRELIMINARY; // 選択中の引き分けモード。空文字は未選択
         let teamListFromCsv = []; // 読み込んだチーム一覧（{value, text}形式）
         /**
          * マッチごとの入力内容と判定結果。配列位置は「マッチ番号 - 1」。
@@ -675,7 +675,7 @@
              teamBSelect.onchange = handleTeamSelectionChange;
              confirmTeamsButton.onclick = () => {
                 if (!isMatchModeSelected()) {
-                    setTeamSelectionMessage("モード（引き分け無/引き分け有り）を選択してください");
+                    setTeamSelectionMessage("モード（引き分け無/引き分け有）を選択してください");
                     return;
                 }
 
@@ -842,7 +842,7 @@
             const teamBText = teamBSelect.options[teamBSelect.selectedIndex].text;
 
             if (!isMatchModeSelected()) {
-                selectedTeamsDisplay.textContent = "モード（引き分け無/引き分け有り）を選択してください";
+                selectedTeamsDisplay.textContent = "モード（引き分け無/引き分け有）を選択してください";
                 selectedTeamsDisplay.style.color = "orange";
                 confirmTeamsButton.disabled = true;
                 return;
@@ -991,19 +991,19 @@
 
         /**
          * 保存済みの引き分けモードを復元する。
-         * 保存値が空・不正、またはlocalStorageを利用できない場合は「引き分け無」を選ぶ。
+         * 保存値が空・不正、またはlocalStorageを利用できない場合は「引き分け有」を選ぶ。
          */
         function loadSelectedMatchMode() {
             try {
                 const saved = localStorage.getItem(MATCH_MODE_STORAGE_KEY);
                 if (saved === MATCH_MODES.PRELIMINARY || saved === MATCH_MODES.FINAL || saved === "") {
-                    selectedMatchMode = saved || MATCH_MODES.FINAL;
+                    selectedMatchMode = saved || MATCH_MODES.PRELIMINARY;
                     return;
                 }
             } catch (e) {
                 console.error("モード選択の読み込みに失敗:", e);
             }
-            selectedMatchMode = MATCH_MODES.FINAL;
+            selectedMatchMode = MATCH_MODES.PRELIMINARY;
         }
 
         /**
@@ -1660,7 +1660,7 @@
             let winReasonText = "";
 
             if (selectedMatchMode === MATCH_MODES.PRELIMINARY) {
-                // 「引き分け有り」では勝利マッチ数が同じなら総合引き分け
+                // 「引き分け有」では勝利マッチ数が同じなら総合引き分け
                 if (gameTotalWinsTeamA > gameTotalWinsTeamB) {
                     overallWinner = confirmedTeamADisplay;
                     winReasonText = "[勝利マッチ数]";
@@ -1907,7 +1907,7 @@
                                 </label>
                                 <label for="prelimModeCheckbox" style="display:flex; align-items:center; gap:8px;">
                                     <input type="checkbox" id="prelimModeCheckbox" class="central-ball-checkbox">
-                                    引き分け有り
+                                    引き分け有
                                 </label>
                             </div>
                             <div id="selectedTeamsDisplayInternal">チームを選択してください</div>

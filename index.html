@@ -255,7 +255,7 @@
         const MAX_PURPLE_BALLS = 2; // 両チームを合わせた紫ボールの総数
         const MATCH_MODE_STORAGE_KEY = 'robosportsMatchMode'; // モードをブラウザに保存する際のキー
         const USE_FIXED_TEAM_LIST = true; // 一時的にCSVアップロードを無効化し、同梱CSVを使用する
-        const FIXED_TEAM_LIST_CSV_PATH = './teamlist_nara.csv'; // 自動読み込みするチームリスト
+        const FIXED_TEAM_LIST_CSV_PATH = './teamlist_national.csv'; // 自動読み込みする全国大会チームリスト
         // PRELIMINARY/FINALは旧名称の内部キー。値は現在の画面表示と判定方法に対応する。
         const MATCH_MODES = Object.freeze({ PRELIMINARY: "引き分け有", FINAL: "引き分け無" });
         const MATCH_END_TYPES = Object.freeze({ TIMEOUT: "timeout", MANUAL: "manual", EDIT: "edit" });
@@ -1806,10 +1806,10 @@
         }
 
         /**
-         * 同梱の奈良大会用CSVを取得し、チーム選択欄へ反映する。
+         * 同梱の全国大会用CSVを取得し、チーム選択欄へ反映する。
          */
         async function loadFixedTeamList() {
-            updateFixedTeamListStatus('奈良大会チームリストを読み込んでいます...', false);
+            updateFixedTeamListStatus('全国大会チームリストを読み込んでいます...', false);
 
             try {
                 const response = await fetch(FIXED_TEAM_LIST_CSV_PATH, { cache: 'no-store' });
@@ -1885,7 +1885,7 @@
                  const teamSelectionHTML = `
                     <div class="team-selection-container">
                         <h2 class="section-title">対戦チーム選択</h2>
-                        <div id="fixedTeamListStatus" class="mb-4${USE_FIXED_TEAM_LIST ? '' : ' hidden'}" aria-live="polite">奈良大会チームリストを読み込んでいます...</div>
+                        <div id="fixedTeamListStatus" class="mb-4${USE_FIXED_TEAM_LIST ? '' : ' hidden'}" aria-live="polite">全国大会チームリストを読み込んでいます...</div>
                         <div class="csv-upload-container${USE_FIXED_TEAM_LIST ? ' hidden' : ''}" id="csvUploadContainer">
                             <label for="csvFileInput" class="block mb-2 text-sm font-medium text-gray-900">チームリストCSVファイル (1列目: チーム番号, 2列目: チーム名):</label>
                             <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
